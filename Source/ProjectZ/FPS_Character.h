@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "CoreMinimal.h"	
 #include "GameFramework/Character.h"
 #include "FPS_Character.generated.h"
 
@@ -23,8 +23,19 @@ protected:
 	void MoveRight(float value);
 	void jump();
 
+	/** Pawn mesh: 1st person view (arms; seen only by self) */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	class USkeletalMeshComponent* Mesh1P;
+
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FirstPersonCameraComponent;
+
 	UPROPERTY(EditAnywhere,Category="Jumping")
 	float JumpHeight=300;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="IDK")
+	class AWeaponBase* CurrentWeapon;
 
 public:	
 	// Called every frame

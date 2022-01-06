@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "FPS_Character.h"
 
@@ -9,6 +11,17 @@ AFPS_Character::AFPS_Character()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Create a CameraComponent	
+	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
+	Mesh1P->SetOnlyOwnerSee(true);
+	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	Mesh1P->bCastDynamicShadow = false;
+	Mesh1P->CastShadow = false;
 }
 
 // Called when the game starts or when spawned
@@ -40,29 +53,17 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AFPS_Character::MoveForward(float value)
 {
-	if ((Controller!=NULL)&&(value!=0))
+	if ( value!=0 )
 	{
-		//get rotation
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
-
-		//get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, value);
+		AddMovementInput(GetActorForwardVector(), value);
 	}
 }
 
 void AFPS_Character::MoveRight(float value)
 {
-	if ((Controller != NULL) && (value != 0))
+	if (value != 0)
 	{
-		//get rotation
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
-
-		//get right vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction, value);
+		AddMovementInput(GetActorRightVector(), value);
 	}
 }
 
