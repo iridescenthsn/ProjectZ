@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "CoreMinimal.h"	
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
@@ -39,16 +39,15 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
 	class USceneComponent* SceneRoot;
 
-	//The weapon type
-	UPROPERTY(BlueprintReadOnly, Category = "WeaponType")
-	EWeaponType WeaponType;
-
-	//Name of the socket the gun will attach to
-	UPROPERTY(EditAnywhere,Category="Socket")
-	FName SocketName;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//Name of the socket the gun will attach to
+	UPROPERTY(EditAnywhere, Category = "Socket")
+	FName SocketName;
+
+	//The weapon type
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponType")
+	EWeaponType WeaponType;
 };

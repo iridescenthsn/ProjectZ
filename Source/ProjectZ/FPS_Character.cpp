@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "WeaponBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -49,8 +50,11 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPS_Character::MoveRight);
 
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AFPS_Character::jump);
+	PlayerInputComponent->BindAction("WeaponSlot1", IE_Pressed, this,&AFPS_Character::EquipSlot1);
+	PlayerInputComponent->BindAction("WeaponSlot2", IE_Pressed, this,&AFPS_Character::EquipSlot2);
 }
 
+//Move forward and backwards
 void AFPS_Character::MoveForward(float value)
 {
 	if ( value!=0 )
@@ -59,6 +63,7 @@ void AFPS_Character::MoveForward(float value)
 	}
 }
 
+//Move right and left
 void AFPS_Character::MoveRight(float value)
 {
 	if (value != 0)
@@ -74,3 +79,29 @@ void AFPS_Character::jump()
 		LaunchCharacter(FVector(0, 0, JumpHeight), false, true);
 	}
 }
+
+void AFPS_Character::EquipSlot1()
+{
+	SpawnWeapon(AssualtRifleBlueprint);
+}
+
+void AFPS_Character::EquipSlot2()
+{
+	SpawnWeapon(PistolBlueprint);
+}
+
+
+//Spawns and attaches weapon to the correct socket on mesh
+void AFPS_Character::SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
+{
+	WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
+	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
+
+	if (!bIsChangingWeapon)
+	{
+		bIsChangingWeapon = true;
+		CurrentWeapon = WeaponSlot_01;
+		bHasWeapon = true;
+	}
+}
+

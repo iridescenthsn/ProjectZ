@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FPS_Character.generated.h"
 
+class AWeaponBase;
+
 UCLASS()
 class PROJECTZ_API AFPS_Character : public ACharacter
 {
@@ -34,8 +36,38 @@ protected:
 	UPROPERTY(EditAnywhere,Category="Jumping")
 	float JumpHeight=300;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="IDK")
-	class AWeaponBase* CurrentWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	AWeaponBase* CurrentWeapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bCanFire=true;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bIsReloading=false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bIsChangingWeapon=false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category = "Weapon")
+	bool bHasWeapon=false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	AWeaponBase* WeaponSlot_01;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapon")
+	AWeaponBase* WeaponSlot_02;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf <AWeaponBase> AssualtRifleBlueprint;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf <AWeaponBase> PistolBlueprint;
+private:
+
+	void EquipSlot1();
+	void EquipSlot2();
+
+	void SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 public:	
 	// Called every frame
