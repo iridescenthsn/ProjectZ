@@ -35,3 +35,40 @@ void AWeaponBase::Tick(float DeltaTime)
 
 }
 
+//Firing method on weapon reduces 1 ammo everytime its called
+void AWeaponBase::WeaponFire()
+{
+	CurrentAmmoInMag--;
+	UE_LOG(LogTemp, Warning, TEXT("base class fire"))
+}
+
+//Reload function that fills the mag
+void AWeaponBase::Reload()
+{
+	//fill the mag full or fill with any ammo thats left
+	CurrentAmmoInMag = FMath::Min(MaxAmmoInMag, CurrentReservedAmmo);
+	CurrentReservedAmmo -= CurrentAmmoInMag;
+}
+
+bool AWeaponBase::HasReservedAmmo()
+{
+	if (CurrentReservedAmmo > 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+FMagStatus AWeaponBase::MagStatus()
+{
+	FMagStatus Mag;
+	CurrentAmmoInMag > 0 ? Mag.bHasAmmo = true : Mag.bHasAmmo = false;
+
+	CurrentAmmoInMag == MaxAmmoInMag ? Mag.bMagFull = true : Mag.bMagFull = false;
+
+	return Mag;
+}
+

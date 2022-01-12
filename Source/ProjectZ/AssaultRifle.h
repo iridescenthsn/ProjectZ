@@ -16,4 +16,6 @@ class PROJECTZ_API AAssaultRifle : public AWeaponBase
 	
 public:
 	AAssaultRifle();
+
+	void WeaponFire();
 };

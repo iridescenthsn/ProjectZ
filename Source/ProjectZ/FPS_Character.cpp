@@ -36,7 +36,8 @@ void AFPS_Character::BeginPlay()
 void AFPS_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	ReloadCurveTimeLine.TickTimeline(DeltaTime);
+	EquipWeaponTimeLine.TickTimeline(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -52,6 +53,9 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AFPS_Character::jump);
 	PlayerInputComponent->BindAction("WeaponSlot1", IE_Pressed, this,&AFPS_Character::EquipSlot1);
 	PlayerInputComponent->BindAction("WeaponSlot2", IE_Pressed, this,&AFPS_Character::EquipSlot2);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPS_Character::OnFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPS_Character::StopFire);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPS_Character::Reload);
 }
 
 //Move forward and backwards
@@ -90,18 +94,144 @@ void AFPS_Character::EquipSlot2()
 	SpawnWeapon(PistolBlueprint);
 }
 
-
 //Spawns and attaches weapon to the correct socket on mesh
 void AFPS_Character::SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
-	WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
-	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
-
-	if (!bIsChangingWeapon)
+	if (!bHasWeapon)
 	{
-		bIsChangingWeapon = true;
-		CurrentWeapon = WeaponSlot_01;
-		bHasWeapon = true;
+		WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
+		WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
+
+		if (!bIsChangingWeapon)
+		{
+			if (bIsReloading)
+			{
+				bCanFire = false;
+				bIsReloading = false;
+			}
+			bIsChangingWeapon = true;
+
+			EquipWeaponTimelineFunc();
+		}
+	}
+}
+
+void AFPS_Character::EquipWeaponTimelineFunc()
+{
+	FOnTimelineEvent TimeLineFinished;
+	TimeLineFinished.BindUFunction(this, FName("EquipWeaponFinished"));
+	EquipWeaponTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
+
+	FOnTimelineEvent WeaponSwitchTime;
+	WeaponSwitchTime.BindUFunction(this, FName("WeaponSwitch"));
+	EquipWeaponTimeLine.AddEvent(0.25, WeaponSwitchTime);
+
+	FOnTimelineFloat TimeLineProgress;
+	TimeLineProgress.BindUFunction(this, FName("SetAlpha"));
+	EquipWeaponTimeLine.AddInterpFloat(EquipWeaponCurve, TimeLineProgress);
+	EquipWeaponTimeLine.SetLooping(false);
+	EquipWeaponTimeLine.PlayFromStart();
+}
+
+void AFPS_Character::WeaponSwitch()
+{
+	WeaponSlot_01->SetActorHiddenInGame(false);
+	CurrentWeapon = WeaponSlot_01;
+	bHasWeapon = true;
+}
+
+
+void AFPS_Character::EquipWeaponFinished()
+{
+	bIsChangingWeapon = false;
+	bCanFire = true;
+}
+
+void AFPS_Character::OnFire()
+{
+	if (bCanFire&&bHasWeapon)
+	{
+		if (CurrentWeapon->MagStatus().bHasAmmo)
+		{
+			CurrentWeapon->WeaponFire();
+			CharacterFireWeapon.Broadcast(CurrentWeapon->WeaponType);
+		}
+		else if (CurrentWeapon->HasReservedAmmo())
+		{
+			Reload();
+		}
+	}
+}
+
+void AFPS_Character::StopFire()
+{
+	CharacterStopFireWeapon.Broadcast();
+}
+
+void AFPS_Character::Reload()
+{
+	if (bHasWeapon)
+	{
+		if (!(bIsChangingWeapon || bIsReloading))
+		{
+			if (!CurrentWeapon->MagStatus().bMagFull)
+			{
+				bIsReloading = true;
+				bCanFire = false;
+
+				ReloadPullDown();
+			}
+		}
+	}
+}
+
+void AFPS_Character::ReloadPullDown()
+{
+	if (PullDownCurve)
+	{
+		FOnTimelineEvent TimeLineFinished;
+		TimeLineFinished.BindUFunction(this, FName("OnReloadPullDownFinished"));
+		ReloadCurveTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
+		
+		FOnTimelineFloat TimelineProgress;
+		TimelineProgress.BindUFunction(this, FName("SetAlpha"));
+		ReloadCurveTimeLine.AddInterpFloat(PullDownCurve, TimelineProgress);
+		ReloadCurveTimeLine.SetLooping(false);
+		ReloadCurveTimeLine.PlayFromStart();
+	}
+}
+
+void AFPS_Character::SetAlpha(float value)
+{
+	WeaponPullAlpha = value;
+}
+
+void AFPS_Character::OnReloadPullDownFinished()
+{
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFPS_Character::ReloadPullUp, CurrentWeapon->ReloadTime, false);
+}
+
+void AFPS_Character::OnReloadPullUpFinished()
+{
+	bIsReloading = false;
+	bCanFire = true;
+	CurrentWeapon->Reload();
+}
+
+void AFPS_Character::ReloadPullUp()
+{
+	if (PullUpCurve)
+	{
+		FOnTimelineEvent TimeLineFinished;
+		TimeLineFinished.BindUFunction(this, FName("OnReloadPullUpFinished"));
+		ReloadCurveTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
+	
+		FOnTimelineFloat TimelineProgress;
+		TimelineProgress.BindUFunction(this, FName("SetAlpha"));
+		ReloadCurveTimeLine.AddInterpFloat(PullUpCurve, TimelineProgress);
+		ReloadCurveTimeLine.SetLooping(false);
+		ReloadCurveTimeLine.PlayFromStart();
 	}
 }
 

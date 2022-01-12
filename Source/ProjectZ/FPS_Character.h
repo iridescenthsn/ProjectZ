@@ -2,10 +2,16 @@
 
 #pragma once
 
+#include "Components/TimelineComponent.h"
 #include "CoreMinimal.h"	
 #include "GameFramework/Character.h"
 #include "FPS_Character.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFireWeaponDelegate,EWeaponType,WeaponType);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopFireWeaponDelegate);
+
+class UCurveFloat;
 class AWeaponBase;
 
 UCLASS()
@@ -16,6 +22,12 @@ class PROJECTZ_API AFPS_Character : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AFPS_Character();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnFireWeaponDelegate CharacterFireWeapon;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStopFireWeaponDelegate CharacterStopFireWeapon;
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,6 +44,37 @@ protected:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* PullDownCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* PullUpCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* EquipWeaponCurve;
+
+	FTimeline ReloadCurveTimeLine;
+
+	FTimeline EquipWeaponTimeLine;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float WeaponPullAlpha;
+
+	UFUNCTION()
+	void SetAlpha(float value);
+
+	UFUNCTION()
+	void OnReloadPullDownFinished();
+
+	UFUNCTION()
+	void OnReloadPullUpFinished();
+
+	UFUNCTION()
+	void WeaponSwitch();
+
+	UFUNCTION()
+	void EquipWeaponFinished();
 
 	UPROPERTY(EditAnywhere,Category="Jumping")
 	float JumpHeight=300;
@@ -62,10 +105,18 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf <AWeaponBase> PistolBlueprint;
+
 private:
 
 	void EquipSlot1();
 	void EquipSlot2();
+	void OnFire();
+	void StopFire();
+	void Reload();
+
+	void ReloadPullDown();
+	void ReloadPullUp();
+	void EquipWeaponTimelineFunc();
 
 	void SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 

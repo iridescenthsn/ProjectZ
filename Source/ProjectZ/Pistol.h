@@ -16,4 +16,6 @@ class PROJECTZ_API APistol : public AWeaponBase
 	
 public:
 	APistol();
+
+	void WeaponFire();
 };
