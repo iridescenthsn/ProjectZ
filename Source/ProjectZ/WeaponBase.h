@@ -40,6 +40,20 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	//Calculates bullet spread and line traces with it
+	void CalculateShot();
+
+	//Player ref
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerRef")
+	class AFPS_Character* Player;
+
+	//Player Camera for line tracing
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	class UCameraComponent* Camera;
+
 	//Gun mesh 1st person view
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class USkeletalMeshComponent* GunMesh;
@@ -51,8 +65,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimationAsset* FireAnimation;
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditDefaultsOnly, Category = "LineTrace")
+	float LineTraceRange=10000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	int32 CurrentAmmoInMag;
@@ -65,6 +79,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	int32 MaxReservedAmmo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	float BulletSpread=300;
 
 public:	
 	//Name of the socket the gun will attach to

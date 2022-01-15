@@ -1,6 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "DrawDebugHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "FPS_Character.h"
+#include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "WeaponBase.h"
 
 // Sets default values
@@ -26,12 +30,44 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	Player = Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	Camera = Player->FirstPersonCameraComponent;
 }
 
 // Called every frame
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AWeaponBase::CalculateShot()
+{
+	FVector startloc = Camera->GetComponentLocation();
+	FVector endloc = startloc + (UKismetMathLibrary::GetForwardVector(Camera->GetComponentRotation()) * LineTraceRange);
+	endloc.X = endloc.X + FMath::RandRange(-BulletSpread, BulletSpread);
+	endloc.Y = endloc.Y + FMath::RandRange(-BulletSpread, BulletSpread);
+	endloc.Z = endloc.Z + FMath::RandRange(-BulletSpread, BulletSpread);
+
+	FHitResult HitResult;
+
+	//Add player as ignored actor for line trace
+	FCollisionQueryParams ActorToIgnore;
+	ActorToIgnore.AddIgnoredActor(Player);
+
+	//Add Objects to trace by (static and dynamic)
+	FCollisionObjectQueryParams ObjectsToTrace;
+	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldDynamic);
+	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(
+		HitResult,
+		startloc,
+		endloc,
+		ObjectsToTrace,
+		ActorToIgnore);
+
+	DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
+	DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
 }
 
@@ -39,6 +75,7 @@ void AWeaponBase::Tick(float DeltaTime)
 void AWeaponBase::WeaponFire()
 {
 	CurrentAmmoInMag--;
+	CalculateShot();
 	UE_LOG(LogTemp, Warning, TEXT("base class fire"))
 }
 
