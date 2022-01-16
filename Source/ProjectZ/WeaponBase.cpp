@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "ImpactEffect.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "FPS_Character.h"
@@ -40,7 +41,7 @@ void AWeaponBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AWeaponBase::CalculateShot()
+FHitResult AWeaponBase::CalculateShot()
 {
 	FVector startloc = Camera->GetComponentLocation();
 	FVector endloc = startloc + (UKismetMathLibrary::GetForwardVector(Camera->GetComponentRotation()) * LineTraceRange);
@@ -53,30 +54,36 @@ void AWeaponBase::CalculateShot()
 	//Add player as ignored actor for line trace
 	FCollisionQueryParams ActorToIgnore;
 	ActorToIgnore.AddIgnoredActor(Player);
+	ActorToIgnore.bReturnPhysicalMaterial = true;
 
 	//Add Objects to trace by (static and dynamic)
 	FCollisionObjectQueryParams ObjectsToTrace;
 	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldDynamic);
 	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
 
-	bool bHit = GetWorld()->LineTraceSingleByObjectType(
-		HitResult,
-		startloc,
-		endloc,
-		ObjectsToTrace,
-		ActorToIgnore);
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult,startloc,endloc,ObjectsToTrace,ActorToIgnore);
 
 	DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
 	DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
+	return HitResult;
 }
 
 //Firing method on weapon reduces 1 ammo everytime its called
 void AWeaponBase::WeaponFire()
 {
 	CurrentAmmoInMag--;
-	CalculateShot();
-	UE_LOG(LogTemp, Warning, TEXT("base class fire"))
+	FHitResult HitResult= CalculateShot();
+
+	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
+	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
+
+	if (ImpactEffect!=nullptr)
+	{
+		ImpactEffect->initialize(HitResult, HitResult.bBlockingHit);
+		UGameplayStatics::FinishSpawningActor(ImpactEffect, SpawnTransForm);
+	}
+
 }
 
 //Reload function that fills the mag

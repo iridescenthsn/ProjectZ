@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"		
+#include "CoreMinimal.h"			
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
@@ -27,6 +27,8 @@ public:
 	bool bMagFull;
 };
 
+class AImpactEffect;
+
 UCLASS()
 class PROJECTZ_API AWeaponBase : public AActor
 {
@@ -44,7 +46,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	//Calculates bullet spread and line traces with it
-	void CalculateShot();
+	FHitResult CalculateShot();
 
 	//Player ref
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerRef")
@@ -64,6 +66,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimationAsset* FireAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf <AImpactEffect> ImpactEffectBP;
 
 	UPROPERTY(EditDefaultsOnly, Category = "LineTrace")
 	float LineTraceRange=10000;
