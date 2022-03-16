@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Components/TimelineComponent.h"
-#include "CoreMinimal.h"	
+#include "CoreMinimal.h"		
 #include "GameFramework/Character.h"
 #include "FPS_Character.generated.h"
 
@@ -11,8 +11,21 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFireWeaponDelegate,EWeaponType,We
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopFireWeaponDelegate);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponSwitchDelegate);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractPressed);
+
+
 class UCurveFloat;
 class AWeaponBase;
+
+
+UENUM(BlueprintType)
+enum class EWeaponSlot : uint8
+{
+	FirstSlot,
+	SecondSlot
+};
 
 UCLASS()
 class PROJECTZ_API AFPS_Character : public ACharacter
@@ -28,6 +41,14 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnStopFireWeaponDelegate CharacterStopFireWeapon;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponSwitchDelegate CharacterWeaponSwitch;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInteractPressed InteractPressed;
+
+	bool PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 protected:
 	// Called when the game starts or when spawned
@@ -72,6 +93,10 @@ protected:
 	UFUNCTION()
 	void EquipWeaponFinished();
 
+	void SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn);
+
+	void SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn);
+
 	UPROPERTY(EditAnywhere,Category="Jumping")
 	float JumpHeight=300;
 
@@ -90,31 +115,35 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category = "Weapon")
 	bool bHasWeapon=false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bFirstSlotFull=false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bSecondSlotFull=false;
+
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeaponBase* WeaponSlot_01;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon")
 	AWeaponBase* WeaponSlot_02;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TSubclassOf <AWeaponBase> AssualtRifleBlueprint;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TSubclassOf <AWeaponBase> PistolBlueprint;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	EWeaponSlot WeaponSlot;
 
 private:
 
 	void EquipSlot1();
 	void EquipSlot2();
+	void EquipWeapon(AWeaponBase* WeaponToEquip);
+	void ShowWeapon(AWeaponBase* WeaponToEquip);
 	void OnFire();
 	void StopFire();
 	void Reload();
+	void Interact();
 
 	void ReloadPullDown();
 	void ReloadPullUp();
 	void EquipWeaponTimelineFunc();
-
-	void SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 public:	
 	// Called every frame

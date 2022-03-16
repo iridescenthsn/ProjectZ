@@ -17,5 +17,10 @@ class PROJECTZ_API AAssaultRifle : public AWeaponBase
 public:
 	AAssaultRifle();
 
+	UPROPERTY(EditDefaultsOnly, Category = "AmmoShell")
+	TSubclassOf<class APistolAmmoShell> ProjectileClass;
+
 	void WeaponFire();
+
+	void AmmoShellEject();
 };

@@ -63,8 +63,8 @@ FHitResult AWeaponBase::CalculateShot()
 
 	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult,startloc,endloc,ObjectsToTrace,ActorToIgnore);
 
-	DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
-	DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
+	//DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
+	//DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
 	return HitResult;
 }

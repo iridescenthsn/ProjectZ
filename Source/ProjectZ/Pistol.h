@@ -17,9 +17,11 @@ class PROJECTZ_API APistol : public AWeaponBase
 public:
 	APistol();
 
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	UPROPERTY(EditDefaultsOnly, Category = "AmmoShell")
 	TSubclassOf<class APistolAmmoShell> ProjectileClass;
 
 	void WeaponFire();
+
+	void AmmoShellEject();
+
 };

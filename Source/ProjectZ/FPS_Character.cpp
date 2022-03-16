@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Blueprint/UserWidget.h"
 #include "WeaponBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
@@ -29,7 +30,6 @@ AFPS_Character::AFPS_Character()
 void AFPS_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -56,6 +56,7 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPS_Character::OnFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPS_Character::StopFire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPS_Character::Reload);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFPS_Character::Interact);
 }
 
 //Move forward and backwards
@@ -86,34 +87,147 @@ void AFPS_Character::jump()
 
 void AFPS_Character::EquipSlot1()
 {
-	SpawnWeapon(AssualtRifleBlueprint);
+	if (bFirstSlotFull)
+	{
+		if (CurrentWeapon!=WeaponSlot_01)
+		{
+			CurrentWeapon = WeaponSlot_01;
+			WeaponSlot = EWeaponSlot::FirstSlot;
+			EquipWeapon(WeaponSlot_01);
+		}
+	}
 }
 
 void AFPS_Character::EquipSlot2()
 {
-	SpawnWeapon(PistolBlueprint);
+	if (bSecondSlotFull)
+	{
+		if (CurrentWeapon!=WeaponSlot_02)
+		{
+			CurrentWeapon = WeaponSlot_02;
+			WeaponSlot = EWeaponSlot::SecondSlot;
+			EquipWeapon(WeaponSlot_02);
+		}
+	}
+}
+
+void AFPS_Character::EquipWeapon(AWeaponBase* WeaponToEquip)
+{
+	if (!bIsChangingWeapon)
+	{
+		if (bIsReloading)
+		{
+			bIsReloading = false;
+		}
+
+		bIsChangingWeapon = true;
+		bCanFire = false;
+
+		EquipWeaponTimelineFunc();
+	}
+}
+
+void AFPS_Character::ShowWeapon(AWeaponBase* WeaponToEquip)
+{
+	if (CurrentWeapon==WeaponSlot_01)
+	{
+		WeaponSlot_01->SetActorHiddenInGame(false);
+
+		if (WeaponSlot_02!=nullptr)
+		{
+			WeaponSlot_02->SetActorHiddenInGame(true);
+		}
+	}
+	if (CurrentWeapon==WeaponSlot_02)
+	{
+		WeaponSlot_02->SetActorHiddenInGame(false);
+
+		if (WeaponSlot_01!=nullptr)
+		{
+			WeaponSlot_01->SetActorHiddenInGame(true);
+		}
+	}
 }
 
 //Spawns and attaches weapon to the correct socket on mesh
-void AFPS_Character::SpawnWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
+bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
-	if (!bHasWeapon)
+	bool bSuccessful;
+
+	switch (WeaponSlot)
 	{
-		WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
-		WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
 
-		if (!bIsChangingWeapon)
+	case EWeaponSlot::FirstSlot:
+
+		if (!bFirstSlotFull)
 		{
-			if (bIsReloading)
-			{
-				bCanFire = false;
-				bIsReloading = false;
-			}
-			bIsChangingWeapon = true;
-
-			EquipWeaponTimelineFunc();
+			SpawnFirstSlot(WeaponToSpawn);
+			bSuccessful = true;
+			return bSuccessful;
 		}
+		else
+		{
+			if (!bSecondSlotFull)
+			{
+				WeaponSlot = EWeaponSlot::SecondSlot;
+				PickUpWeapon(WeaponToSpawn);
+				return bSuccessful = true;
+			}
+			else
+			{
+				bSuccessful = false;
+				return bSuccessful;
+			}
+		}
+
+		break;
+
+	case EWeaponSlot::SecondSlot:
+
+		if (!bSecondSlotFull)
+		{
+			SpawnSecondSlot(WeaponToSpawn);
+			bSuccessful = true;
+			return bSuccessful;
+		} 
+		else
+		{
+			bSuccessful = false;
+			return bSuccessful;
+		}
+
+		break;
+
+	default:
+
+		return false;
+		break;
+
 	}
+}
+
+void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
+{
+	WeaponSlot_02 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
+	WeaponSlot_02->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_02->SocketName);
+	bSecondSlotFull = true;
+	bHasWeapon = true;
+	WeaponSlot = EWeaponSlot::SecondSlot;
+	CurrentWeapon = WeaponSlot_02;
+	ShowWeapon(CurrentWeapon);
+	CharacterWeaponSwitch.Broadcast();
+}
+
+void AFPS_Character::SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
+{
+	WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
+	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
+	bFirstSlotFull = true;
+	bHasWeapon = true;
+	WeaponSlot = EWeaponSlot::FirstSlot;
+	CurrentWeapon = WeaponSlot_01;
+	ShowWeapon(CurrentWeapon);
+	CharacterWeaponSwitch.Broadcast();
 }
 
 void AFPS_Character::EquipWeaponTimelineFunc()
@@ -135,11 +249,10 @@ void AFPS_Character::EquipWeaponTimelineFunc()
 
 void AFPS_Character::WeaponSwitch()
 {
-	WeaponSlot_01->SetActorHiddenInGame(false);
-	CurrentWeapon = WeaponSlot_01;
+	ShowWeapon(CurrentWeapon);
 	bHasWeapon = true;
+	CharacterWeaponSwitch.Broadcast();
 }
-
 
 void AFPS_Character::EquipWeaponFinished()
 {
@@ -174,15 +287,23 @@ void AFPS_Character::Reload()
 	{
 		if (!(bIsChangingWeapon || bIsReloading))
 		{
-			if (!CurrentWeapon->MagStatus().bMagFull)
+			if (CurrentWeapon->HasReservedAmmo())
 			{
-				bIsReloading = true;
-				bCanFire = false;
+				if (!CurrentWeapon->MagStatus().bMagFull)
+				{
+					bIsReloading = true;
+					bCanFire = false;
 
-				ReloadPullDown();
+					ReloadPullDown();
+				}
 			}
 		}
 	}
+}
+
+void AFPS_Character::Interact()
+{
+	InteractPressed.Broadcast();
 }
 
 void AFPS_Character::ReloadPullDown()

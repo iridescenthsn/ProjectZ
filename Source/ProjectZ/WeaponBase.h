@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"			
-#include "GameFramework/Actor.h"
+#include "GameFramework/Actor.h"	
 #include "WeaponBase.generated.h"
 
 UENUM(BlueprintType)

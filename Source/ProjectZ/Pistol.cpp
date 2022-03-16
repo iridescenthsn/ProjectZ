@@ -13,8 +13,11 @@ void APistol::WeaponFire()
 {
 	Super::WeaponFire();
 	GunMesh->PlayAnimation(FireAnimation, false);
+	AmmoShellEject();
+}
 
-	// try and fire a projectile
+void APistol::AmmoShellEject()
+{
 	if (ProjectileClass != NULL)
 	{
 		UWorld* const World = GetWorld();
@@ -27,7 +30,7 @@ void APistol::WeaponFire()
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		
+
 			World->SpawnActor<APistolAmmoShell>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
