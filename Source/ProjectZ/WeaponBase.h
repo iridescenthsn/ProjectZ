@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"			
+#include "CoreMinimal.h"				
 #include "GameFramework/Actor.h"	
 #include "WeaponBase.generated.h"
 
@@ -48,6 +48,9 @@ protected:
 	//Calculates bullet spread and line traces with it
 	FHitResult CalculateShot();
 
+	//Apply damage to actors which can take Damage
+	void AddDamage(FHitResult Hit);
+
 	//Player ref
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerRef")
 	class AFPS_Character* Player;
@@ -87,6 +90,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	float BulletSpread=300;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	float CriticalHitModifier=1;
 
 public:	
 	//Name of the socket the gun will attach to

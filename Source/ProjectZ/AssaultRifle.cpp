@@ -7,6 +7,8 @@ AAssaultRifle::AAssaultRifle()
 {
 	WeaponType = EWeaponType::AssaultRifle;
 	SocketName = FName(TEXT("AssualtRifle_Socket"));
+	//AmmoData->Damage = 100.f;
+	//AmmoData->CriticalHitChance = 10;
 }
 
 void AAssaultRifle::WeaponFire()

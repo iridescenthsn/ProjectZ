@@ -82,7 +82,7 @@ void AImpactEffect::BeginPlay()
 			HitResult.ImpactPoint,
 			DecalRotation,
 			EAttachLocation::KeepWorldPosition,
-			3.0f
+			0.0f
 		);
 		break;
 
@@ -96,7 +96,7 @@ void AImpactEffect::BeginPlay()
 			HitResult.ImpactPoint,
 			DecalRotation,
 			EAttachLocation::KeepWorldPosition,
-			3.0f
+			0.0f
 		);
 		break;
 

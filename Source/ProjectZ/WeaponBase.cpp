@@ -6,7 +6,10 @@
 #include "FPS_Character.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "TakeDamage.h"
 #include "WeaponBase.h"
+
+
 
 // Sets default values
 AWeaponBase::AWeaponBase()
@@ -66,7 +69,25 @@ FHitResult AWeaponBase::CalculateShot()
 	//DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
 	//DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
+	if (bHit)
+	{
+		AddDamage(HitResult);
+	}
+
 	return HitResult;
+}
+
+void AWeaponBase::AddDamage(FHitResult Hit)
+{
+	AActor* HitActor = Hit.GetActor();
+	if (HitActor)
+	{
+		ITakeDamage* TakeDamageInterface = Cast<ITakeDamage>(HitActor);
+		if (TakeDamageInterface)
+		{
+			//TakeDamageInterface->TakeDamage(WeaponAmmoData, CriticalHitModifier, Hit);
+		}
+	}
 }
 
 //Firing method on weapon reduces 1 ammo everytime its called
