@@ -1,14 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "PistolAmmoShell.h"	
 #include "AssaultRifle.h"
+#include "PistolAmmoShell.h"	
+
 
 AAssaultRifle::AAssaultRifle()
 {
 	WeaponType = EWeaponType::AssaultRifle;
 	SocketName = FName(TEXT("AssualtRifle_Socket"));
-	//AmmoData->Damage = 100.f;
-	//AmmoData->CriticalHitChance = 10;
+}
+
+void AAssaultRifle::BeginPlay()
+{
+	Super::BeginPlay();
+	AmmoData.Damage = 100.f;
+	AmmoData.CriticalHitChance = 10;
 }
 
 void AAssaultRifle::WeaponFire()

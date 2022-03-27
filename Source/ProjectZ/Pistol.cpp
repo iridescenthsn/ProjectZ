@@ -7,8 +7,13 @@ APistol::APistol()
 {
 	WeaponType = EWeaponType::Pistol;
 	SocketName = FName(TEXT("Pistol_Socket"));
-	//AmmoData->Damage = 100.f;
-	//AmmoData->CriticalHitChance = 10;
+}
+
+void APistol::BeginPlay()
+{
+	Super::BeginPlay();
+	AmmoData.Damage = 100.f;
+	AmmoData.CriticalHitChance = 10;
 }
 
 void APistol::WeaponFire()

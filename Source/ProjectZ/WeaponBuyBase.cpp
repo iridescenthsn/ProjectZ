@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "WeaponBuyBase.h"
 #include "FPS_Character.h"	
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
 #include "WeaponBase.h"
-#include "WeaponBuyBase.h"
+
 
 // Sets default values
 AWeaponBuyBase::AWeaponBuyBase()

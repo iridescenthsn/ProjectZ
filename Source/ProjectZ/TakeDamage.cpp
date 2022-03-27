@@ -5,7 +5,7 @@
 
 // Add default functionality here for any ITakeDamage functions that are not pure virtual.
 
-//void ITakeDamage::TakeDamage(UAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
-//{
-//	return;
-//}
+void ITakeDamage::TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
+{
+	return;
+}

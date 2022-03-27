@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "WeaponBase.h"
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "TakeDamage.generated.h"
@@ -23,5 +24,5 @@ class PROJECTZ_API ITakeDamage
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	//virtual void TakeDamage(UAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult);
+	virtual void TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult);
 };

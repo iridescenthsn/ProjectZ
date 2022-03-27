@@ -27,6 +27,17 @@ public:
 	bool bMagFull;
 };
 
+USTRUCT(BlueprintType)
+struct FAmmoData
+{
+	GENERATED_USTRUCT_BODY()
+public:
+
+	float Damage;
+	float CriticalHitChance;
+};
+
+
 class AImpactEffect;
 
 UCLASS()
@@ -102,6 +113,10 @@ public:
 	//The weapon type
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponType")
 	EWeaponType WeaponType;
+
+	//Properties of the ammo of the gun such as damage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponType")
+	FAmmoData AmmoData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reload")
 	float ReloadTime;

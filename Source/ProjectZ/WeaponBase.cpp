@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "WeaponBase.h"
 #include "ImpactEffect.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -7,7 +8,6 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TakeDamage.h"
-#include "WeaponBase.h"
 
 
 
@@ -85,7 +85,7 @@ void AWeaponBase::AddDamage(FHitResult Hit)
 		ITakeDamage* TakeDamageInterface = Cast<ITakeDamage>(HitActor);
 		if (TakeDamageInterface)
 		{
-			//TakeDamageInterface->TakeDamage(WeaponAmmoData, CriticalHitModifier, Hit);
+			TakeDamageInterface->TakeDamage(AmmoData, CriticalHitModifier, Hit);
 		}
 	}
 }

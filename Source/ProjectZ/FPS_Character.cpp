@@ -1,11 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "FPS_Character.h"
 #include "Blueprint/UserWidget.h"
 #include "WeaponBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "FPS_Character.h"
+
 
 // Sets default values
 AFPS_Character::AFPS_Character()

@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"	
+#include "GameFramework/Character.h"
+#include "WeaponBase.h"
 #include "TakeDamage.h"
 #include "AI_Character.generated.h"
 
@@ -39,7 +40,7 @@ protected:
 	bool UpdateHealth(float Damage);
 
 	//Gets called when damage is applied
-	//void TakeDamage(UAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult) override;
+	void TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult) override;
 
 public:	
 	// Called every frame

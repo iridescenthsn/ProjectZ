@@ -17,6 +17,9 @@ class PROJECTZ_API AAssaultRifle : public AWeaponBase
 public:
 	AAssaultRifle();
 
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditDefaultsOnly, Category = "AmmoShell")
 	TSubclassOf<class APistolAmmoShell> ProjectileClass;
 

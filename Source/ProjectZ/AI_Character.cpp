@@ -47,11 +47,11 @@ bool AAI_Character::UpdateHealth(float Damage)
 	return bLocalIsDead;
 }
 
-//void AAI_Character::TakeDamage(UAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
-//{
-//	float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
-//	bIsDead = UpdateHealth(DamageTaken);
-//}
+void AAI_Character::TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
+{
+	float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
+	bIsDead = UpdateHealth(DamageTaken);
+}
 
 // Called every frame
 void AAI_Character::Tick(float DeltaTime)
