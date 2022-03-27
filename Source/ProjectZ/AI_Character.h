@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "GameFramework/Character.h"	
 #include "TakeDamage.h"
 #include "AI_Character.generated.h"
 
