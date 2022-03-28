@@ -38,6 +38,14 @@ void AImpactEffect::BeginPlay()
 		break;
 
 	case SurfaceType2:
+		
+	case SurfaceType3:
+
+	case SurfaceType4:
+
+	case SurfaceType5:
+
+	case SurfaceType6:
 		EmitterToSpawn = FleshFX;
 		break;
 
@@ -60,6 +68,14 @@ void AImpactEffect::BeginPlay()
 		break;
 
 	case SurfaceType2:
+
+	case SurfaceType3:
+
+	case SurfaceType4:
+
+	case SurfaceType5:
+
+	case SurfaceType6:
 		SoundToPlay = FleshSound;
 		break;
 

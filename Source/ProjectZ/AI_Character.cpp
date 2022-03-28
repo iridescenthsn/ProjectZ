@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "AI_Character.h"
 
 // Sets default values
@@ -32,12 +32,14 @@ float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float Crit
 	{
 		bIsCriticalHit = false;
 	}
+
+	LocalDamage = LocalDamage * HitResult.PhysMaterial->DestructibleDamageThresholdScale;
 	return LocalDamage;
 }
 
 bool AAI_Character::UpdateHealth(float Damage)
 {
-	bool bLocalIsDead;
+	bool bLocalIsDead=false;
 	CurrentHealth -= Damage;
 	if (CurrentHealth<=0)
 	{
