@@ -107,6 +107,11 @@ void AWeaponBase::WeaponFire()
 
 }
 
+void AWeaponBase::StopFire()
+{
+
+}
+
 //Reload function that fills the mag
 void AWeaponBase::Reload()
 {

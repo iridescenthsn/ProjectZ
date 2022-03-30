@@ -99,11 +99,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	int32 MaxReservedAmmo;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float BulletSpread=300;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float CriticalHitModifier=1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	bool IsWeaponAuto;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float AutomaticFireRate = 0.1;
 
 public:	
 	//Name of the socket the gun will attach to
@@ -115,16 +121,17 @@ public:
 	EWeaponType WeaponType;
 
 	//Properties of the ammo of the gun such as damage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WeaponType")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
 	FAmmoData AmmoData;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reload")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property")
 	float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
 	float RecoilIntensity;
 
 	virtual void WeaponFire();
+	virtual void StopFire();
 
 	UFUNCTION()
 	void Reload();

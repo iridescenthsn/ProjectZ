@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Components/TimelineComponent.h"	
-#include "CoreMinimal.h"		
+#include "CoreMinimal.h"			
 #include "GameFramework/Character.h"
 #include "FPS_Character.generated.h"
 
@@ -136,9 +136,6 @@ private:
 	void EquipSlot2();
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
 	void ShowWeapon(AWeaponBase* WeaponToEquip);
-	void OnFire();
-	void StopFire();
-	void Reload();
 	void Interact();
 
 	void ReloadPullDown();
@@ -155,5 +152,9 @@ public:
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
+
+	void OnFire();
+	void StopFire();
+	void Reload();
 
 };

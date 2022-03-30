@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "WeaponBase.h"
+#include "WeaponBase.h"	
 #include "TakeDamage.h"
 #include "AI_Character.generated.h"
 

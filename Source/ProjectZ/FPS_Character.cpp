@@ -270,16 +270,28 @@ void AFPS_Character::OnFire()
 			CurrentWeapon->WeaponFire();
 			CharacterFireWeapon.Broadcast(CurrentWeapon->WeaponType);
 		}
-		else if (CurrentWeapon->HasReservedAmmo())
+		else
 		{
-			Reload();
+			if (CurrentWeapon->HasReservedAmmo())
+			{
+				StopFire();
+				Reload();
+			}
+			else
+			{
+				StopFire();
+			}
 		}
 	}
 }
 
 void AFPS_Character::StopFire()
 {
-	CharacterStopFireWeapon.Broadcast();
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopFire();
+		CharacterStopFireWeapon.Broadcast();
+	}
 }
 
 void AFPS_Character::Reload()

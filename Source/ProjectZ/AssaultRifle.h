@@ -23,7 +23,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "AmmoShell")
 	TSubclassOf<class APistolAmmoShell> ProjectileClass;
 
-	void WeaponFire();
+private:
+
+	FTimerHandle AutoFireHandle;
+
+	void WeaponFire() override;
+	void StopFire() override;
 
 	void AmmoShellEject();
+
+	void AutoFire();
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State")
+	bool bIsRifleFiring;
 };

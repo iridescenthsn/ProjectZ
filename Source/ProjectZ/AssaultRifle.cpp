@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AssaultRifle.h"
+#include "FPS_Character.h"
 #include "PistolAmmoShell.h"	
 
 
@@ -8,6 +9,7 @@ AAssaultRifle::AAssaultRifle()
 {
 	WeaponType = EWeaponType::AssaultRifle;
 	SocketName = FName(TEXT("AssualtRifle_Socket"));
+	IsWeaponAuto = true;
 }
 
 void AAssaultRifle::BeginPlay()
@@ -17,14 +19,38 @@ void AAssaultRifle::BeginPlay()
 	AmmoData.CriticalHitChance = 10;
 }
 
+//Call auto fire frequently based on fire rate for as long as holding the button down(sets timer)
 void AAssaultRifle::WeaponFire()
 {
 	Super::WeaponFire();
+
 	GunMesh->PlayAnimation(FireAnimation, false);
+	bIsRifleFiring = true;
+	GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAssaultRifle::AutoFire, AutomaticFireRate, true);
 
 	AmmoShellEject();
 }
 
+//Stops calling the auto fire function when releasing the firing button(clears timer)
+void AAssaultRifle::StopFire()
+{
+	Super::StopFire();
+
+	bIsRifleFiring = false;
+	GetWorldTimerManager().ClearTimer(AutoFireHandle);
+}
+
+void AAssaultRifle::AutoFire()
+{
+	if (bIsRifleFiring)
+	{
+		Player->OnFire();
+	}
+	
+}
+
+
+//Spawns an ammo shell on the ammo eject socket
 void AAssaultRifle::AmmoShellEject()
 {
 	if (ProjectileClass != NULL)
