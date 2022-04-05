@@ -10,7 +10,6 @@
 #include "TakeDamage.h"
 
 
-
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
@@ -36,12 +35,19 @@ void AWeaponBase::BeginPlay()
 	
 	Player = Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	Camera = Player->FirstPersonCameraComponent;
+
+
+	FOnTimelineFloat TimeLineProgress;
+	TimeLineProgress.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
+	RecoilTimeLine.AddInterpFloat(RecoilCurve, TimeLineProgress);
+	RecoilTimeLine.SetLooping(false);
 }
 
 // Called every frame
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	RecoilTimeLine.TickTimeline(DeltaTime);
 }
 
 FHitResult AWeaponBase::CalculateShot()
@@ -90,26 +96,82 @@ void AWeaponBase::AddDamage(FHitResult Hit)
 	}
 }
 
+void AWeaponBase::AddRecoil()
+{
+	if (RecoilCurve)
+	{
+		RecoilTimeLine.SetPlayRate(1.0f);
+		RecoilTimeLine.PlayFromStart();
+		RecoilTimelineDirection = ETimelineDirection::Forward;
+	}
+}
+
+void AWeaponBase::AddRecoilPitch(float value)
+{
+	float PitchToAdd = FMath::Lerp(RecoilIntensity, 0.0f, value);
+	if (RecoilTimelineDirection == ETimelineDirection::Forward)
+	{
+		Player->AddControllerPitchInput(-PitchToAdd);
+	}
+	else if (RecoilTimelineDirection == ETimelineDirection::Backward)
+	{
+		Player->AddControllerPitchInput(PitchToAdd);
+	}
+}
+
+void AWeaponBase::RevertRecoil()
+{
+	RecoilTimeLine.SetPlayRate(RecoilTimelineReversePR);
+	RecoilTimeLine.Reverse();
+	RecoilTimelineDirection = ETimelineDirection::Backward;
+}
+
+void AWeaponBase::StopRecoil()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Stop recoil called"))
+	RecoilTimeLine.Stop();
+}
+
 //Firing method on weapon reduces 1 ammo everytime its called
 void AWeaponBase::WeaponFire()
 {
-	CurrentAmmoInMag--;
-	FHitResult HitResult= CalculateShot();
-
-	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
-	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
-
-	if (ImpactEffect!=nullptr)
+	if (Player->bCanFire)
 	{
-		ImpactEffect->initialize(HitResult, HitResult.bBlockingHit);
-		UGameplayStatics::FinishSpawningActor(ImpactEffect, SpawnTransForm);
-	}
+		if (MagStatus().bHasAmmo)
+		{
+			Player->CharacterFireWeapon.Broadcast(WeaponType);
 
+			CurrentAmmoInMag--;
+			FHitResult HitResult = CalculateShot();
+
+			FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
+			AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
+
+			if (ImpactEffect != nullptr)
+			{
+				ImpactEffect->initialize(HitResult, HitResult.bBlockingHit);
+				UGameplayStatics::FinishSpawningActor(ImpactEffect, SpawnTransForm);
+			}
+		}
+		else
+		{
+			StopFire();
+
+			if (HasReservedAmmo())
+			{
+				Player->Reload();
+			}
+		}
+	}
+	
 }
 
 void AWeaponBase::StopFire()
 {
-
+	Player->CharacterStopFireWeapon.Broadcast();
+	StopRecoil();
+	RevertRecoil();
+	//UE_LOG(LogTemp, Warning,TEXT("Revert called"))
 }
 
 //Reload function that fills the mag

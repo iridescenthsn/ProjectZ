@@ -24,11 +24,14 @@ void AAssaultRifle::WeaponFire()
 {
 	Super::WeaponFire();
 
-	GunMesh->PlayAnimation(FireAnimation, false);
-	bIsRifleFiring = true;
-	GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAssaultRifle::AutoFire, AutomaticFireRate, true);
+	if (Player->bCanFire&&MagStatus().bHasAmmo)
+	{
+		GunMesh->PlayAnimation(FireAnimation, false);
+		bIsRifleFiring = true;
+		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAssaultRifle::AutoFire, AutomaticFireRate, true);
 
-	AmmoShellEject();
+		AmmoShellEject();
+	}
 }
 
 //Stops calling the auto fire function when releasing the firing button(clears timer)
@@ -44,7 +47,7 @@ void AAssaultRifle::AutoFire()
 {
 	if (bIsRifleFiring)
 	{
-		Player->OnFire();
+		WeaponFire();
 	}
 	
 }

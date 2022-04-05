@@ -18,8 +18,6 @@ void AImpactEffect::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("Beginplay"))
-
 	DecalRotation = HitResult.Normal.Rotation();
 	DecalRotation.Roll = FMath::RandRange(-180, 180);
 	if (HitResult.PhysMaterial==nullptr)
@@ -152,7 +150,6 @@ void AImpactEffect::Tick(float DeltaTime)
 
 void AImpactEffect::initialize(FHitResult hit, bool IsUsingHit)
 {
-	UE_LOG(LogTemp,Warning,TEXT("Initialize called"))
 	HitResult = hit;
 	bIsUsingHitResult = IsUsingHit;
 }

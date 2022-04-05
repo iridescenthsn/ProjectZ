@@ -265,23 +265,8 @@ void AFPS_Character::OnFire()
 {
 	if (bCanFire&&bHasWeapon)
 	{
-		if (CurrentWeapon->MagStatus().bHasAmmo)
-		{
-			CurrentWeapon->WeaponFire();
-			CharacterFireWeapon.Broadcast(CurrentWeapon->WeaponType);
-		}
-		else
-		{
-			if (CurrentWeapon->HasReservedAmmo())
-			{
-				StopFire();
-				Reload();
-			}
-			else
-			{
-				StopFire();
-			}
-		}
+		CurrentWeapon->WeaponFire();
+		CurrentWeapon->AddRecoil();
 	}
 }
 
@@ -290,7 +275,6 @@ void AFPS_Character::StopFire()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
-		CharacterStopFireWeapon.Broadcast();
 	}
 }
 

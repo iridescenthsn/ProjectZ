@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "AI_Character.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 // Sets default values
 AAI_Character::AAI_Character()

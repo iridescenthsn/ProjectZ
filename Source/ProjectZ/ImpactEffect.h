@@ -53,7 +53,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	float DecalSize = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Decal")
+	float DecalSize = 3;
+
 	FHitResult HitResult;
 	bool bIsUsingHitResult;
 

@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"					
-#include "GameFramework/Actor.h"	
+#include "CoreMinimal.h"		
+#include "Components/TimelineComponent.h"
+#include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
 UENUM(BlueprintType)
@@ -81,6 +82,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimationAsset* FireAnimation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
+	class UCurveFloat* RecoilCurve;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
+	FTimeline RecoilTimeLine;
+
+	UPROPERTY()
+	TEnumAsByte<ETimelineDirection::Type> RecoilTimelineDirection;
+
+	//Recoil Timeline reverse play rate
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
+	float RecoilTimelineReversePR=2.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf <AImpactEffect> ImpactEffectBP;
 
@@ -128,10 +142,28 @@ public:
 	float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
+	float AnimRecoil;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
 	float RecoilIntensity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
+	bool bTimeLineisBound;
 
 	virtual void WeaponFire();
 	virtual void StopFire();
+
+	UFUNCTION()
+	void AddRecoil();
+
+	UFUNCTION()
+	void AddRecoilPitch(float value);
+
+	UFUNCTION()
+	void RevertRecoil();
+
+	UFUNCTION()
+	void StopRecoil();
 
 	UFUNCTION()
 	void Reload();

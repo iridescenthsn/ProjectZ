@@ -104,9 +104,6 @@ protected:
 	AWeaponBase* CurrentWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	bool bCanFire=true;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bIsReloading=false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
@@ -153,8 +150,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	bool bCanFire = true;
+
+	UFUNCTION(BlueprintCallable)
 	void OnFire();
+
+	UFUNCTION(BlueprintCallable)
 	void StopFire();
+
+	UFUNCTION(BlueprintCallable)
 	void Reload();
 
 };
