@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ImpactEffect.h"
+#include "Components/DecalComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -86,9 +87,12 @@ void AImpactEffect::BeginPlay()
 	FVector DSize = FVector(DecalSize, DecalSize, DecalSize);
 	switch (HitResult.PhysMaterial->SurfaceType)
 	{
+
+		UDecalComponent* Decal;
+
 	case SurfaceType_Default:
 	
-		UGameplayStatics::SpawnDecalAttached
+		Decal = UGameplayStatics::SpawnDecalAttached
 		(
 			DefaultDecalMat,
 			DSize,
@@ -99,10 +103,11 @@ void AImpactEffect::BeginPlay()
 			EAttachLocation::KeepWorldPosition,
 			0.0f
 		);
+		Decal->SetFadeScreenSize(DecalFadeScreenSize);
 		break;
 
 	case SurfaceType1:
-		UGameplayStatics::SpawnDecalAttached
+		Decal = UGameplayStatics::SpawnDecalAttached
 		(
 			ConcreteDecalMat,
 			DSize,
@@ -113,6 +118,7 @@ void AImpactEffect::BeginPlay()
 			EAttachLocation::KeepWorldPosition,
 			0.0f
 		);
+		Decal->SetFadeScreenSize(DecalFadeScreenSize);
 		break;
 
 	case SurfaceType2:

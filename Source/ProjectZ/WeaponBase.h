@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"		
+#include "CoreMinimal.h"			
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
@@ -40,6 +40,7 @@ public:
 
 
 class AImpactEffect;
+class UCurveFloat;
 
 UCLASS()
 class PROJECTZ_API AWeaponBase : public AActor
@@ -83,7 +84,10 @@ protected:
 	class UAnimationAsset* FireAnimation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
-	class UCurveFloat* RecoilCurve;
+	UCurveFloat* RecoilPitchCurve;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
+	UCurveFloat* RecoilYawCurve;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
 	FTimeline RecoilTimeLine;
@@ -120,9 +124,6 @@ protected:
 	float CriticalHitModifier=1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	bool IsWeaponAuto;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float AutomaticFireRate = 0.1;
 
 public:	
@@ -144,13 +145,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
 	float AnimRecoil;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
-	float RecoilIntensity;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
 	bool bTimeLineisBound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	bool bIsWeaponAuto;
+
 	virtual void WeaponFire();
+
+	void SpawnDecal();
+
 	virtual void StopFire();
 
 	UFUNCTION()
@@ -158,6 +162,9 @@ public:
 
 	UFUNCTION()
 	void AddRecoilPitch(float value);
+
+	UFUNCTION()
+	void AddRecoilYaw(float value);
 
 	UFUNCTION()
 	void RevertRecoil();
@@ -170,5 +177,21 @@ public:
 
 	bool HasReservedAmmo();
 
+	bool bIsWeaponFiring;
+
 	FMagStatus MagStatus();
+
+	float RecoilAllAdedYaw = 0.0f;
+
+	float RecoilAllAdedPitch = 0.0f;
+
+	float PitchPullDown = 0.0f;
+
+	float YawPullDown = 0.0f;
+
+	float PlayerYawInput = 0.0f;
+
+	float PlayerPitchInput=0.0f;
+	
+	int32 AddRecoilTimesCalled = 0;
 };

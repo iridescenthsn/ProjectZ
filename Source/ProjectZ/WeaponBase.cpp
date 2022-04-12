@@ -37,9 +37,15 @@ void AWeaponBase::BeginPlay()
 	Camera = Player->FirstPersonCameraComponent;
 
 
-	FOnTimelineFloat TimeLineProgress;
-	TimeLineProgress.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
-	RecoilTimeLine.AddInterpFloat(RecoilCurve, TimeLineProgress);
+	FOnTimelineFloat RecoilPitchTMFloat;
+	RecoilPitchTMFloat.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
+	RecoilTimeLine.AddInterpFloat(RecoilPitchCurve, RecoilPitchTMFloat);
+
+
+	FOnTimelineFloat RecoilYawTMFloat;
+	RecoilYawTMFloat.BindUFunction(this, FName(TEXT("AddRecoilYaw")));
+	RecoilTimeLine.AddInterpFloat(RecoilYawCurve, RecoilYawTMFloat);
+
 	RecoilTimeLine.SetLooping(false);
 }
 
@@ -47,7 +53,23 @@ void AWeaponBase::BeginPlay()
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	RecoilTimeLine.TickTimeline(DeltaTime);
+
+	if (RecoilTimelineDirection==ETimelineDirection::Forward)
+	{
+		RecoilTimeLine.TickTimeline(DeltaTime);
+	}
+	else if (RecoilTimelineDirection == ETimelineDirection::Backward)
+	{
+		RecoilTimeLine.TickTimeline(DeltaTime);
+		RecoilTimeLine.TickTimeline(DeltaTime);
+		RecoilTimeLine.TickTimeline(DeltaTime);
+		RecoilTimeLine.TickTimeline(DeltaTime);
+		RecoilTimeLine.TickTimeline(DeltaTime);
+	}
+
+	UE_LOG(LogTemp,Warning,TEXT("player pitch input %f"),PlayerPitchInput)
+
+	UE_LOG(LogTemp, Warning, TEXT("player yaw input %f"), PlayerYawInput)
 }
 
 FHitResult AWeaponBase::CalculateShot()
@@ -98,9 +120,15 @@ void AWeaponBase::AddDamage(FHitResult Hit)
 
 void AWeaponBase::AddRecoil()
 {
-	if (RecoilCurve)
+	if (RecoilYawCurve && RecoilPitchCurve)
 	{
-		RecoilTimeLine.SetPlayRate(1.0f);
+		RecoilAllAdedYaw = 0.0f;
+		RecoilAllAdedPitch = 0.0f;
+		AddRecoilTimesCalled = 0;
+
+		PlayerPitchInput = 0.0f;
+		PlayerYawInput = 0.0f;
+
 		RecoilTimeLine.PlayFromStart();
 		RecoilTimelineDirection = ETimelineDirection::Forward;
 	}
@@ -108,27 +136,46 @@ void AWeaponBase::AddRecoil()
 
 void AWeaponBase::AddRecoilPitch(float value)
 {
-	float PitchToAdd = FMath::Lerp(RecoilIntensity, 0.0f, value);
+	AddRecoilTimesCalled++;
+
 	if (RecoilTimelineDirection == ETimelineDirection::Forward)
 	{
-		Player->AddControllerPitchInput(-PitchToAdd);
+		RecoilAllAdedPitch += value;
+		Player->AddControllerPitchInput(-value);
 	}
-	else if (RecoilTimelineDirection == ETimelineDirection::Backward)
+	else
 	{
-		Player->AddControllerPitchInput(PitchToAdd);
+		Player->AddControllerPitchInput(PitchPullDown);
+	}
+}
+
+void AWeaponBase::AddRecoilYaw(float value)
+{
+	if (RecoilTimelineDirection==ETimelineDirection::Forward)
+	{
+		RecoilAllAdedYaw += value;
+		Player->AddControllerYawInput(value);
+	}
+	else
+	{
+		Player->AddControllerYawInput(-YawPullDown);
 	}
 }
 
 void AWeaponBase::RevertRecoil()
 {
-	RecoilTimeLine.SetPlayRate(RecoilTimelineReversePR);
+	RecoilAllAdedPitch = RecoilAllAdedPitch - PlayerPitchInput;
+	RecoilAllAdedYaw = RecoilAllAdedYaw - PlayerYawInput;
+
+	PitchPullDown = RecoilAllAdedPitch / AddRecoilTimesCalled;
+	YawPullDown = RecoilAllAdedYaw / AddRecoilTimesCalled;
+
 	RecoilTimeLine.Reverse();
 	RecoilTimelineDirection = ETimelineDirection::Backward;
 }
 
 void AWeaponBase::StopRecoil()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Stop recoil called"))
 	RecoilTimeLine.Stop();
 }
 
@@ -139,23 +186,17 @@ void AWeaponBase::WeaponFire()
 	{
 		if (MagStatus().bHasAmmo)
 		{
+			bIsWeaponFiring = true;
+
 			Player->CharacterFireWeapon.Broadcast(WeaponType);
 
 			CurrentAmmoInMag--;
-			FHitResult HitResult = CalculateShot();
-
-			FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
-			AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
-
-			if (ImpactEffect != nullptr)
-			{
-				ImpactEffect->initialize(HitResult, HitResult.bBlockingHit);
-				UGameplayStatics::FinishSpawningActor(ImpactEffect, SpawnTransForm);
-			}
+			SpawnDecal();
 		}
 		else
 		{
 			StopFire();
+			Player->bCanFire = false;
 
 			if (HasReservedAmmo())
 			{
@@ -166,12 +207,31 @@ void AWeaponBase::WeaponFire()
 	
 }
 
+void AWeaponBase::SpawnDecal()
+{
+	FHitResult HitResult = CalculateShot();
+
+	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
+	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
+
+	if (ImpactEffect != nullptr)
+	{
+		ImpactEffect->initialize(HitResult, HitResult.bBlockingHit);
+		UGameplayStatics::FinishSpawningActor(ImpactEffect, SpawnTransForm);
+	}
+}
+
 void AWeaponBase::StopFire()
 {
+	bIsWeaponFiring = false;
+
 	Player->CharacterStopFireWeapon.Broadcast();
-	StopRecoil();
-	RevertRecoil();
-	//UE_LOG(LogTemp, Warning,TEXT("Revert called"))
+
+	if (RecoilYawCurve&& RecoilPitchCurve)
+	{
+		StopRecoil();
+		RevertRecoil();
+	}
 }
 
 //Reload function that fills the mag

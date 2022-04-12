@@ -56,6 +56,8 @@ protected:
 
 	void MoveForward(float value);
 	void MoveRight(float value);
+	void Turn(float value);
+	void LookUp(float value);
 	void jump();
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */

@@ -33,9 +33,4 @@ private:
 	void AmmoShellEject();
 
 	void AutoFire();
-
-protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State")
-	bool bIsRifleFiring;
 };

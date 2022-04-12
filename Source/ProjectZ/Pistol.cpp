@@ -7,6 +7,7 @@ APistol::APistol()
 {
 	WeaponType = EWeaponType::Pistol;
 	SocketName = FName(TEXT("Pistol_Socket"));
+	bIsWeaponAuto = false;
 }
 
 void APistol::BeginPlay()

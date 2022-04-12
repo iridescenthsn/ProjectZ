@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Impact effect")
 	FRotator DecalRotation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Impact effect")
+	float DecalFadeScreenSize;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

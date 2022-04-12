@@ -46,8 +46,8 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &AFPS_Character::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AFPS_Character::LookUp);
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFPS_Character::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPS_Character::MoveRight);
 
@@ -75,6 +75,24 @@ void AFPS_Character::MoveRight(float value)
 	if (value != 0)
 	{
 		AddMovementInput(GetActorRightVector(), value);
+	}
+}
+
+void AFPS_Character::Turn(float value)
+{
+	AddControllerYawInput(value);
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->PlayerYawInput += value;
+	}
+}
+
+void AFPS_Character::LookUp(float value)
+{
+	AddControllerPitchInput(value);
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->PlayerPitchInput += value;
 	}
 }
 
@@ -265,8 +283,15 @@ void AFPS_Character::OnFire()
 {
 	if (bCanFire&&bHasWeapon)
 	{
-		CurrentWeapon->WeaponFire();
-		CurrentWeapon->AddRecoil();
+		if (CurrentWeapon->MagStatus().bHasAmmo)
+		{
+			CurrentWeapon->WeaponFire();
+			CurrentWeapon->AddRecoil();
+		}
+		else if (CurrentWeapon->HasReservedAmmo())
+		{
+			Reload();
+		}
 	}
 }
 
@@ -274,7 +299,10 @@ void AFPS_Character::StopFire()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->StopFire();
+		if (CurrentWeapon->bIsWeaponFiring)
+		{
+			CurrentWeapon->StopFire();
+		}
 	}
 }
 

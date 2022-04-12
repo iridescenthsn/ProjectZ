@@ -9,7 +9,7 @@ AAssaultRifle::AAssaultRifle()
 {
 	WeaponType = EWeaponType::AssaultRifle;
 	SocketName = FName(TEXT("AssualtRifle_Socket"));
-	IsWeaponAuto = true;
+	bIsWeaponAuto = true;
 }
 
 void AAssaultRifle::BeginPlay()
@@ -24,10 +24,10 @@ void AAssaultRifle::WeaponFire()
 {
 	Super::WeaponFire();
 
-	if (Player->bCanFire&&MagStatus().bHasAmmo)
+	if (Player->bCanFire)
 	{
 		GunMesh->PlayAnimation(FireAnimation, false);
-		bIsRifleFiring = true;
+		bIsWeaponFiring = true;
 		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAssaultRifle::AutoFire, AutomaticFireRate, true);
 
 		AmmoShellEject();
@@ -39,13 +39,13 @@ void AAssaultRifle::StopFire()
 {
 	Super::StopFire();
 
-	bIsRifleFiring = false;
+	bIsWeaponFiring = false;
 	GetWorldTimerManager().ClearTimer(AutoFireHandle);
 }
 
 void AAssaultRifle::AutoFire()
 {
-	if (bIsRifleFiring)
+	if (bIsWeaponFiring)
 	{
 		WeaponFire();
 	}
