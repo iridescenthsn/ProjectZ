@@ -81,10 +81,6 @@ void AFPS_Character::MoveRight(float value)
 void AFPS_Character::Turn(float value)
 {
 	AddControllerYawInput(value);
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->PlayerYawInput += value;
-	}
 }
 
 void AFPS_Character::LookUp(float value)

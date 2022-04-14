@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"			
+#include "CoreMinimal.h"				
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
@@ -41,6 +41,7 @@ public:
 
 class AImpactEffect;
 class UCurveFloat;
+class APistolAmmoShell;
 
 UCLASS()
 class PROJECTZ_API AWeaponBase : public AActor
@@ -63,6 +64,13 @@ protected:
 
 	//Apply damage to actors which can take Damage
 	void AddDamage(FHitResult Hit);
+
+	//Ejects ammo shell after firing
+	void AmmoShellEject();
+
+	//Ammo shell to Spawn
+	UPROPERTY(EditDefaultsOnly, Category = "Ammoshell")
+	TSubclassOf <APistolAmmoShell> AmmoShellClass;
 
 	//Player ref
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerRef")
@@ -153,7 +161,7 @@ public:
 
 	virtual void WeaponFire();
 
-	void SpawnDecal();
+	void SpawnDecal(const FHitResult &HitResult);
 
 	virtual void StopFire();
 
@@ -175,23 +183,20 @@ public:
 	UFUNCTION()
 	void Reload();
 
+	UFUNCTION()
+	void AdvanceTimeline();
+
 	bool HasReservedAmmo();
 
 	bool bIsWeaponFiring;
 
 	FMagStatus MagStatus();
 
-	float RecoilAllAdedYaw = 0.0f;
-
 	float RecoilAllAdedPitch = 0.0f;
 
 	float PitchPullDown = 0.0f;
 
-	float YawPullDown = 0.0f;
-
-	float PlayerYawInput = 0.0f;
-
 	float PlayerPitchInput=0.0f;
 	
-	int32 AddRecoilTimesCalled = 0;
+	int32 NumberOfFramesToRevert = 0;
 };

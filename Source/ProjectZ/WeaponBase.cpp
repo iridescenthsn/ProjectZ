@@ -5,6 +5,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "FPS_Character.h"
+#include "PistolAmmoShell.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TakeDamage.h"
@@ -33,20 +34,29 @@ void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//Get camera and player ref
 	Player = Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	Camera = Player->FirstPersonCameraComponent;
 
 
+	//Timeline float for recoil pitch binding
 	FOnTimelineFloat RecoilPitchTMFloat;
 	RecoilPitchTMFloat.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
 	RecoilTimeLine.AddInterpFloat(RecoilPitchCurve, RecoilPitchTMFloat);
 
 
+	//Timeline float for recoil Yaw binding
 	FOnTimelineFloat RecoilYawTMFloat;
 	RecoilYawTMFloat.BindUFunction(this, FName(TEXT("AddRecoilYaw")));
 	RecoilTimeLine.AddInterpFloat(RecoilYawCurve, RecoilYawTMFloat);
 
+	//timeline shouldnt loop
 	RecoilTimeLine.SetLooping(false);
+
+
+	//Advance timeline every 0.05f sec
+	FTimerHandle RecoilTimerHandle;
+	GetWorldTimerManager().SetTimer(RecoilTimerHandle, this, &AWeaponBase::AdvanceTimeline, 0.05f, true);
 }
 
 // Called every frame
@@ -54,11 +64,15 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	//number of frames to divide by for reverting recoil
 	if (RecoilTimelineDirection==ETimelineDirection::Forward)
 	{
-		RecoilTimeLine.TickTimeline(DeltaTime);
+		NumberOfFramesToRevert++;
 	}
-	else if (RecoilTimelineDirection == ETimelineDirection::Backward)
+
+	//Advance the timeline faster when reverting recoil
+	if (RecoilTimelineDirection==ETimelineDirection::Backward)
 	{
 		RecoilTimeLine.TickTimeline(DeltaTime);
 		RecoilTimeLine.TickTimeline(DeltaTime);
@@ -66,14 +80,11 @@ void AWeaponBase::Tick(float DeltaTime)
 		RecoilTimeLine.TickTimeline(DeltaTime);
 		RecoilTimeLine.TickTimeline(DeltaTime);
 	}
-
-	UE_LOG(LogTemp,Warning,TEXT("player pitch input %f"),PlayerPitchInput)
-
-	UE_LOG(LogTemp, Warning, TEXT("player yaw input %f"), PlayerYawInput)
 }
 
 FHitResult AWeaponBase::CalculateShot()
 {
+	//Randomize bullet rays
 	FVector startloc = Camera->GetComponentLocation();
 	FVector endloc = startloc + (UKismetMathLibrary::GetForwardVector(Camera->GetComponentRotation()) * LineTraceRange);
 	endloc.X = endloc.X + FMath::RandRange(-BulletSpread, BulletSpread);
@@ -105,6 +116,8 @@ FHitResult AWeaponBase::CalculateShot()
 	return HitResult;
 }
 
+
+//Add damage to the hit actor if it has takedamage interface
 void AWeaponBase::AddDamage(FHitResult Hit)
 {
 	AActor* HitActor = Hit.GetActor();
@@ -118,26 +131,45 @@ void AWeaponBase::AddDamage(FHitResult Hit)
 	}
 }
 
+
+void AWeaponBase::AmmoShellEject()
+{
+	if (AmmoShellClass != NULL)
+	{
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			const FRotator SpawnRotation = GunMesh->GetSocketRotation(FName(TEXT("AmmoEject")));
+			const FVector SpawnLocation = GunMesh->GetSocketLocation(FName(TEXT("AmmoEject")));
+
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+			World->SpawnActor<APistolAmmoShell>(AmmoShellClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		}
+	}
+}
+
+//Plays the recoil timeline
 void AWeaponBase::AddRecoil()
 {
 	if (RecoilYawCurve && RecoilPitchCurve)
 	{
-		RecoilAllAdedYaw = 0.0f;
 		RecoilAllAdedPitch = 0.0f;
-		AddRecoilTimesCalled = 0;
-
+		NumberOfFramesToRevert = 0;
 		PlayerPitchInput = 0.0f;
-		PlayerYawInput = 0.0f;
 
 		RecoilTimeLine.PlayFromStart();
 		RecoilTimelineDirection = ETimelineDirection::Forward;
 	}
 }
 
+
+//Adds recoil pitch when timeline is going forward and revert recoil when going backwards
 void AWeaponBase::AddRecoilPitch(float value)
 {
-	AddRecoilTimesCalled++;
-
 	if (RecoilTimelineDirection == ETimelineDirection::Forward)
 	{
 		RecoilAllAdedPitch += value;
@@ -149,26 +181,29 @@ void AWeaponBase::AddRecoilPitch(float value)
 	}
 }
 
+
+//Add yaw recoil when timeline is going forward
 void AWeaponBase::AddRecoilYaw(float value)
 {
 	if (RecoilTimelineDirection==ETimelineDirection::Forward)
 	{
-		RecoilAllAdedYaw += value;
 		Player->AddControllerYawInput(value);
-	}
-	else
-	{
-		Player->AddControllerYawInput(-YawPullDown);
 	}
 }
 
+
+//Calculate Revert recoil based on the amount of the recoil added and player pitch input
 void AWeaponBase::RevertRecoil()
 {
-	RecoilAllAdedPitch = RecoilAllAdedPitch - PlayerPitchInput;
-	RecoilAllAdedYaw = RecoilAllAdedYaw - PlayerYawInput;
-
-	PitchPullDown = RecoilAllAdedPitch / AddRecoilTimesCalled;
-	YawPullDown = RecoilAllAdedYaw / AddRecoilTimesCalled;
+	if ((RecoilAllAdedPitch - PlayerPitchInput)>= 0.0f)
+	{
+		RecoilAllAdedPitch -= PlayerPitchInput;
+		PitchPullDown = RecoilAllAdedPitch /NumberOfFramesToRevert ;
+	}
+	else
+	{
+		PitchPullDown = 0.0f;
+	}
 
 	RecoilTimeLine.Reverse();
 	RecoilTimelineDirection = ETimelineDirection::Backward;
@@ -191,7 +226,10 @@ void AWeaponBase::WeaponFire()
 			Player->CharacterFireWeapon.Broadcast(WeaponType);
 
 			CurrentAmmoInMag--;
-			SpawnDecal();
+
+			FHitResult HitResult = CalculateShot();
+
+			SpawnDecal(HitResult);
 		}
 		else
 		{
@@ -207,10 +245,8 @@ void AWeaponBase::WeaponFire()
 	
 }
 
-void AWeaponBase::SpawnDecal()
+void AWeaponBase::SpawnDecal(const FHitResult &HitResult)
 {
-	FHitResult HitResult = CalculateShot();
-
 	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
 	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
 
@@ -240,6 +276,16 @@ void AWeaponBase::Reload()
 	//fill the mag full or fill with any ammo thats left
 	CurrentAmmoInMag = FMath::Min(MaxAmmoInMag, CurrentReservedAmmo);
 	CurrentReservedAmmo -= CurrentAmmoInMag;
+}
+
+
+//Advances the recoil timeline
+void AWeaponBase::AdvanceTimeline()
+{
+	if (RecoilTimelineDirection==ETimelineDirection::Forward)
+	{
+		RecoilTimeLine.TickTimeline(0.05f);
+	}
 }
 
 bool AWeaponBase::HasReservedAmmo()

@@ -4,29 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "WeaponBase.h"
-#include "AssaultRifle.generated.h"
+#include "ShotGun.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTZ_API AAssaultRifle : public AWeaponBase
+class PROJECTZ_API AShotGun : public AWeaponBase
 {
 	GENERATED_BODY()
-	
-public:
-	AAssaultRifle();
+
+	AShotGun();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+protected:
 
-private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
+	int32 NumberOfPallets;
 
-	FTimerHandle AutoFireHandle;
-
-	void WeaponFire() override;
-	void StopFire() override;
-
-	void AutoFire();
+	virtual void WeaponFire() override;
 };
