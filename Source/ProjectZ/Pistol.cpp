@@ -17,10 +17,5 @@ void APistol::BeginPlay()
 	AmmoData.CriticalHitChance = 10;
 }
 
-void APistol::WeaponFire()
-{
-	Super::WeaponFire();
-	GunMesh->PlayAnimation(FireAnimation, false);
-	AmmoShellEject();
-}
+
 

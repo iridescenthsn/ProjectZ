@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"				
-#include "Components/TimelineComponent.h"
-#include "GameFramework/Actor.h"
+#include "Components/TimelineComponent.h"		
+#include "GameFramework/Actor.h"	
 #include "WeaponBase.generated.h"
 
 UENUM(BlueprintType)
@@ -103,10 +103,6 @@ protected:
 	UPROPERTY()
 	TEnumAsByte<ETimelineDirection::Type> RecoilTimelineDirection;
 
-	//Recoil Timeline reverse play rate
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
-	float RecoilTimelineReversePR=2.0f;
-
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf <AImpactEffect> ImpactEffectBP;
 
@@ -147,8 +143,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
 	FAmmoData AmmoData;
 
+	FTimerHandle StopFiringHandle;
+
+	FTimerHandle ShootingDelayHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
+	float StopFireRate=0.1f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property")
 	float ReloadTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float DelayBetweenShots=0.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
 	float AnimRecoil;
@@ -156,35 +162,42 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
 	bool bTimeLineisBound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
+	int32 ReverseTimeLineSpeed=1;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	bool bIsWeaponAuto;
 
 	virtual void WeaponFire();
 
+	void SetWeaponState();
+
+	void CharacterStopFireWeapon();
+
 	void SpawnDecal(const FHitResult &HitResult);
 
+	UFUNCTION()
 	virtual void StopFire();
 
 	UFUNCTION()
 	void AddRecoil();
 
-	UFUNCTION()
-	void AddRecoilPitch(float value);
+	void StartPlayingTimeLine();
 
 	UFUNCTION()
-	void AddRecoilYaw(float value);
+	virtual void AddRecoilPitch(float value);
 
 	UFUNCTION()
-	void RevertRecoil();
+	virtual void AddRecoilYaw(float value);
+
+	UFUNCTION()
+	virtual void RevertRecoil();
 
 	UFUNCTION()
 	void StopRecoil();
 
 	UFUNCTION()
 	void Reload();
-
-	UFUNCTION()
-	void AdvanceTimeline();
 
 	bool HasReservedAmmo();
 
@@ -193,6 +206,8 @@ public:
 	FMagStatus MagStatus();
 
 	float RecoilAllAdedPitch = 0.0f;
+
+	float RecoilAllreducedPitch = 0.0f;
 
 	float PitchPullDown = 0.0f;
 

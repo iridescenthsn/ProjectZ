@@ -38,25 +38,28 @@ void AWeaponBase::BeginPlay()
 	Player = Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	Camera = Player->FirstPersonCameraComponent;
 
-
 	//Timeline float for recoil pitch binding
-	FOnTimelineFloat RecoilPitchTMFloat;
-	RecoilPitchTMFloat.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
-	RecoilTimeLine.AddInterpFloat(RecoilPitchCurve, RecoilPitchTMFloat);
+	if (RecoilPitchCurve)
+	{
+		FOnTimelineFloat RecoilPitchTMFloat;
+		RecoilPitchTMFloat.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
+		RecoilTimeLine.AddInterpFloat(RecoilPitchCurve, RecoilPitchTMFloat);
 
-
+		FOnTimelineEvent RecoilTimeLineFinished;
+		RecoilTimeLineFinished.BindUFunction(this, FName(TEXT("StopFire")));
+		RecoilTimeLine.SetTimelineFinishedFunc(RecoilTimeLineFinished);
+	}
+	
 	//Timeline float for recoil Yaw binding
-	FOnTimelineFloat RecoilYawTMFloat;
-	RecoilYawTMFloat.BindUFunction(this, FName(TEXT("AddRecoilYaw")));
-	RecoilTimeLine.AddInterpFloat(RecoilYawCurve, RecoilYawTMFloat);
-
+	if (RecoilYawCurve)
+	{
+		FOnTimelineFloat RecoilYawTMFloat;
+		RecoilYawTMFloat.BindUFunction(this, FName(TEXT("AddRecoilYaw")));
+		RecoilTimeLine.AddInterpFloat(RecoilYawCurve, RecoilYawTMFloat);
+	}
+	
 	//timeline shouldnt loop
 	RecoilTimeLine.SetLooping(false);
-
-
-	//Advance timeline every 0.05f sec
-	FTimerHandle RecoilTimerHandle;
-	GetWorldTimerManager().SetTimer(RecoilTimerHandle, this, &AWeaponBase::AdvanceTimeline, 0.05f, true);
 }
 
 // Called every frame
@@ -64,21 +67,18 @@ void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	//number of frames to divide by for reverting recoil
 	if (RecoilTimelineDirection==ETimelineDirection::Forward)
 	{
-		NumberOfFramesToRevert++;
+		RecoilTimeLine.TickTimeline(DeltaTime);
 	}
-
+	
 	//Advance the timeline faster when reverting recoil
 	if (RecoilTimelineDirection==ETimelineDirection::Backward)
 	{
-		RecoilTimeLine.TickTimeline(DeltaTime);
-		RecoilTimeLine.TickTimeline(DeltaTime);
-		RecoilTimeLine.TickTimeline(DeltaTime);
-		RecoilTimeLine.TickTimeline(DeltaTime);
-		RecoilTimeLine.TickTimeline(DeltaTime);
+		for (size_t i = 0; i < ReverseTimeLineSpeed; i++)
+		{
+			RecoilTimeLine.TickTimeline(DeltaTime);
+		}
 	}
 }
 
@@ -157,27 +157,38 @@ void AWeaponBase::AddRecoil()
 {
 	if (RecoilYawCurve && RecoilPitchCurve)
 	{
-		RecoilAllAdedPitch = 0.0f;
-		NumberOfFramesToRevert = 0;
-		PlayerPitchInput = 0.0f;
-
-		RecoilTimeLine.PlayFromStart();
-		RecoilTimelineDirection = ETimelineDirection::Forward;
+		StartPlayingTimeLine();
+	}
+	else if (RecoilPitchCurve && !bIsWeaponAuto)
+	{
+		StartPlayingTimeLine();
 	}
 }
 
+
+void AWeaponBase::StartPlayingTimeLine()
+{
+	RecoilAllAdedPitch = 0.0f;
+	RecoilAllreducedPitch = 0.0f;
+	NumberOfFramesToRevert = 0;
+	PlayerPitchInput = 0.0f;
+
+	RecoilTimelineDirection = ETimelineDirection::Forward;
+	RecoilTimeLine.PlayFromStart();
+}
 
 //Adds recoil pitch when timeline is going forward and revert recoil when going backwards
 void AWeaponBase::AddRecoilPitch(float value)
 {
 	if (RecoilTimelineDirection == ETimelineDirection::Forward)
 	{
-		RecoilAllAdedPitch += value;
+		RecoilAllAdedPitch++;
 		Player->AddControllerPitchInput(-value);
 	}
 	else
 	{
-		Player->AddControllerPitchInput(PitchPullDown);
+		RecoilAllreducedPitch ++;
+		Player->AddControllerPitchInput(value);
 	}
 }
 
@@ -195,22 +206,13 @@ void AWeaponBase::AddRecoilYaw(float value)
 //Calculate Revert recoil based on the amount of the recoil added and player pitch input
 void AWeaponBase::RevertRecoil()
 {
-	if ((RecoilAllAdedPitch - PlayerPitchInput)>= 0.0f)
-	{
-		RecoilAllAdedPitch -= PlayerPitchInput;
-		PitchPullDown = RecoilAllAdedPitch /NumberOfFramesToRevert ;
-	}
-	else
-	{
-		PitchPullDown = 0.0f;
-	}
-
-	RecoilTimeLine.Reverse();
 	RecoilTimelineDirection = ETimelineDirection::Backward;
+	RecoilTimeLine.Reverse();
 }
 
 void AWeaponBase::StopRecoil()
 {
+	UE_LOG(LogTemp,Warning,TEXT("Stop recoil called"))
 	RecoilTimeLine.Stop();
 }
 
@@ -230,6 +232,18 @@ void AWeaponBase::WeaponFire()
 			FHitResult HitResult = CalculateShot();
 
 			SpawnDecal(HitResult);
+
+			//Stops gun recoil animation and sets the weapon shooting readiness state
+			if (!bIsWeaponAuto)
+			{
+				Player->bCanFire = false;
+				GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, DelayBetweenShots, false);
+
+				GetWorldTimerManager().SetTimer(StopFiringHandle, this, &AWeaponBase::CharacterStopFireWeapon, StopFireRate, false);
+			}
+
+			GunMesh->PlayAnimation(FireAnimation, false);
+			AmmoShellEject();
 		}
 		else
 		{
@@ -243,6 +257,18 @@ void AWeaponBase::WeaponFire()
 		}
 	}
 	
+}
+
+void AWeaponBase::SetWeaponState()
+{
+	Player->bCanFire = true;
+	GetWorldTimerManager().ClearTimer(ShootingDelayHandle);
+}
+
+void AWeaponBase::CharacterStopFireWeapon()
+{
+	Player->CharacterStopFireWeapon.Broadcast();
+	GetWorldTimerManager().ClearTimer(StopFiringHandle);
 }
 
 void AWeaponBase::SpawnDecal(const FHitResult &HitResult)
@@ -260,13 +286,20 @@ void AWeaponBase::SpawnDecal(const FHitResult &HitResult)
 void AWeaponBase::StopFire()
 {
 	bIsWeaponFiring = false;
-
 	Player->CharacterStopFireWeapon.Broadcast();
 
-	if (RecoilYawCurve&& RecoilPitchCurve)
+	if (RecoilTimelineDirection==ETimelineDirection::Forward)
 	{
-		StopRecoil();
-		RevertRecoil();
+		if (RecoilYawCurve && RecoilPitchCurve)
+		{
+			StopRecoil();
+			RevertRecoil();
+		}
+		else if (RecoilPitchCurve && !bIsWeaponAuto)
+		{
+			StopRecoil();
+			RevertRecoil();
+		}
 	}
 }
 
@@ -276,16 +309,6 @@ void AWeaponBase::Reload()
 	//fill the mag full or fill with any ammo thats left
 	CurrentAmmoInMag = FMath::Min(MaxAmmoInMag, CurrentReservedAmmo);
 	CurrentReservedAmmo -= CurrentAmmoInMag;
-}
-
-
-//Advances the recoil timeline
-void AWeaponBase::AdvanceTimeline()
-{
-	if (RecoilTimelineDirection==ETimelineDirection::Forward)
-	{
-		RecoilTimeLine.TickTimeline(0.05f);
-	}
 }
 
 bool AWeaponBase::HasReservedAmmo()
@@ -309,4 +332,5 @@ FMagStatus AWeaponBase::MagStatus()
 
 	return Mag;
 }
+
 

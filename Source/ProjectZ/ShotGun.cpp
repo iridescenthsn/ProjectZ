@@ -25,13 +25,15 @@ void AShotGun::WeaponFire()
 	{
 		if (MagStatus().bHasAmmo)
 		{
-			bIsWeaponFiring = true;
-
 			Player->CharacterFireWeapon.Broadcast(WeaponType);
 
 			CurrentAmmoInMag--;
 
-			GunMesh->PlayAnimation(FireAnimation, false);
+			//Stops gun recoil animation and sets the weapon shooting readiness state
+			Player->bCanFire = false;
+			GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, DelayBetweenShots, false);
+			GetWorldTimerManager().SetTimer(StopFiringHandle, this, &AWeaponBase::CharacterStopFireWeapon, StopFireRate, false);
+
 
 			for (int32 i = 1; i <= NumberOfPallets; i++)
 			{
@@ -39,6 +41,9 @@ void AShotGun::WeaponFire()
 
 				SpawnDecal(HitResult);
 			}
+
+			GunMesh->PlayAnimation(FireAnimation, false);
+			AmmoShellEject();
 		}
 		else
 		{

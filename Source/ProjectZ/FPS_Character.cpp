@@ -293,12 +293,9 @@ void AFPS_Character::OnFire()
 
 void AFPS_Character::StopFire()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon&& CurrentWeapon->bIsWeaponAuto)
 	{
-		if (CurrentWeapon->bIsWeaponFiring)
-		{
-			CurrentWeapon->StopFire();
-		}
+		CurrentWeapon->StopFire();
 	}
 }
 

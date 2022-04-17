@@ -20,6 +20,7 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
 
 private:
 
@@ -27,6 +28,11 @@ private:
 
 	void WeaponFire() override;
 	void StopFire() override;
+
+	virtual void AddRecoilPitch(float value) override;
+	virtual void RevertRecoil() override;
+
+	void AdvanceTimeLine();
 
 	void AutoFire();
 };
