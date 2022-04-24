@@ -3,19 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponBase.h"
-#include "AssaultRifle.generated.h"
+#include "HitscanWeapons.h"
+#include "AutomaticWeapons.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTZ_API AAssaultRifle : public AWeaponBase
+class PROJECTZ_API AAutomaticWeapons : public AHitscanWeapons
 {
 	GENERATED_BODY()
 	
 public:
-	AAssaultRifle();
+	AAutomaticWeapons();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

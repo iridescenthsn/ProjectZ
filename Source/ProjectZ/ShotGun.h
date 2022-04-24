@@ -3,15 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponBase.h"
+#include "HitscanWeapons.h"
 #include "ShotGun.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTZ_API AShotGun : public AWeaponBase
+class PROJECTZ_API AShotGun : public AHitscanWeapons
 {
+protected:
+
 	GENERATED_BODY()
 
 	AShotGun();
@@ -19,10 +21,8 @@ class PROJECTZ_API AShotGun : public AWeaponBase
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-protected:
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ammo")
 	int32 NumberOfPallets;
 
-	virtual void WeaponFire() override;
+	virtual void Shoot() override;
 };

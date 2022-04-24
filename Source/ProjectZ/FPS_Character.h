@@ -4,7 +4,7 @@
 
 #include "Components/TimelineComponent.h"	
 #include "CoreMinimal.h"			
-#include "GameFramework/Character.h"
+#include "GameFramework/Character.h"	
 #include "FPS_Character.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFireWeaponDelegate,EWeaponType,WeaponType);
@@ -14,6 +14,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopFireWeaponDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponSwitchDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractPressed);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnADSEnterDelegate);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnADSExitDelegate);
 
 
 class UCurveFloat;
@@ -48,6 +52,12 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInteractPressed InteractPressed;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnADSEnterDelegate EventADSEnter;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnADSExitDelegate EventADSExit;
+
 	bool PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 protected:
@@ -59,6 +69,9 @@ protected:
 	void Turn(float value);
 	void LookUp(float value);
 	void jump();
+
+	void ADSEnter();
+	void ADSExit();
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
@@ -73,12 +86,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	UCurveFloat* EquipWeaponCurve;
 
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* ADSCurve;
+
 	FTimeline ReloadCurveTimeLine;
 
 	FTimeline EquipWeaponTimeLine;
 
+	FTimeline ADSTimeline;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float WeaponPullAlpha;
+
+	UFUNCTION()
+	void SetFOV(float value);
 
 	UFUNCTION()
 	void SetAlpha(float value);
@@ -101,6 +122,18 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category="Jumping")
 	float JumpHeight=300;
+
+	UPROPERTY(EditAnywhere, Category = "ADS")
+	float DefaultFOV=90.0f;
+
+	UPROPERTY(EditAnywhere, Category = "ADS")
+	float CurrentFOV=90.0f;
+
+	UPROPERTY(EditAnywhere, Category = "ADS")
+	float TargetFOV=90.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ADS")
+	bool IsADSing = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* CurrentWeapon;

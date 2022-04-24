@@ -19,7 +19,7 @@ AWeaponBase::AWeaponBase()
 
 	// Create a scene component and set it as seen root
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SceneRoot->SetupAttachment(RootComponent);
+	RootComponent = SceneRoot;
 
 	// Create gun mesh and attach it to scene root
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
@@ -108,17 +108,12 @@ FHitResult AWeaponBase::CalculateShot()
 	//DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
 	//DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
-	if (bHit)
-	{
-		AddDamage(HitResult);
-	}
-
 	return HitResult;
 }
 
 
 //Add damage to the hit actor if it has takedamage interface
-void AWeaponBase::AddDamage(FHitResult Hit)
+void AWeaponBase::AddDamage(const FHitResult &Hit)
 {
 	AActor* HitActor = Hit.GetActor();
 	if (HitActor)
@@ -182,12 +177,10 @@ void AWeaponBase::AddRecoilPitch(float value)
 {
 	if (RecoilTimelineDirection == ETimelineDirection::Forward)
 	{
-		RecoilAllAdedPitch++;
 		Player->AddControllerPitchInput(-value);
 	}
 	else
 	{
-		RecoilAllreducedPitch ++;
 		Player->AddControllerPitchInput(value);
 	}
 }
@@ -212,7 +205,6 @@ void AWeaponBase::RevertRecoil()
 
 void AWeaponBase::StopRecoil()
 {
-	UE_LOG(LogTemp,Warning,TEXT("Stop recoil called"))
 	RecoilTimeLine.Stop();
 }
 
@@ -229,9 +221,7 @@ void AWeaponBase::WeaponFire()
 
 			CurrentAmmoInMag--;
 
-			FHitResult HitResult = CalculateShot();
-
-			SpawnDecal(HitResult);
+			Shoot();
 
 			//Stops gun recoil animation and sets the weapon shooting readiness state
 			if (!bIsWeaponAuto)
@@ -259,6 +249,11 @@ void AWeaponBase::WeaponFire()
 	
 }
 
+void AWeaponBase::Shoot()
+{
+
+}
+
 void AWeaponBase::SetWeaponState()
 {
 	Player->bCanFire = true;
@@ -271,7 +266,7 @@ void AWeaponBase::CharacterStopFireWeapon()
 	GetWorldTimerManager().ClearTimer(StopFiringHandle);
 }
 
-void AWeaponBase::SpawnDecal(const FHitResult &HitResult)
+void AWeaponBase::SpawnImpactEffect(const FHitResult &HitResult)
 {
 	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
 	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));

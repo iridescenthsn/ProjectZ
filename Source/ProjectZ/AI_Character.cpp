@@ -52,6 +52,9 @@ bool AAI_Character::UpdateHealth(float Damage)
 void AAI_Character::TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
 {
 	float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
+
+	UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
+
 	bIsDead = UpdateHealth(DamageTaken);
 }
 

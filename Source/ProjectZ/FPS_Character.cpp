@@ -5,6 +5,7 @@
 #include "WeaponBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -31,6 +32,13 @@ AFPS_Character::AFPS_Character()
 void AFPS_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (ADSCurve)
+	{
+		FOnTimelineFloat ADSTimelineFloat;
+		ADSTimelineFloat.BindUFunction(this, FName(TEXT("SetFOV")));
+		ADSTimeline.AddInterpFloat(ADSCurve, ADSTimelineFloat);
+	}
 }
 
 // Called every frame
@@ -39,6 +47,8 @@ void AFPS_Character::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	ReloadCurveTimeLine.TickTimeline(DeltaTime);
 	EquipWeaponTimeLine.TickTimeline(DeltaTime);
+
+	ADSTimeline.TickTimeline(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -58,6 +68,8 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPS_Character::StopFire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPS_Character::Reload);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFPS_Character::Interact);
+	PlayerInputComponent->BindAction("ADS", IE_Pressed, this, &AFPS_Character::ADSEnter);
+	PlayerInputComponent->BindAction("ADS", IE_Released, this, &AFPS_Character::ADSExit);
 }
 
 //Move forward and backwards
@@ -100,12 +112,63 @@ void AFPS_Character::jump()
 	}
 }
 
+void AFPS_Character::ADSEnter()
+{
+	if (IsADSing==false)
+	{
+		IsADSing = true;
+
+		if (CurrentWeapon)
+		{
+			ADSTimeline.Play();
+			EventADSEnter.Broadcast();
+
+			if (CurrentWeapon->WeaponType == EWeaponType::SniperRifle)
+			{
+				CurrentWeapon->GetGunMesh()->SetHiddenInGame(true);
+				Mesh1P->SetHiddenInGame(true);
+			}
+		}
+	}
+}
+
+void AFPS_Character::ADSExit()
+{
+	if (IsADSing==true)
+	{
+		IsADSing = false;
+		if (CurrentWeapon)
+		{
+			ADSTimeline.Reverse();
+			EventADSExit.Broadcast();
+
+			if (CurrentWeapon->WeaponType == EWeaponType::SniperRifle)
+			{
+				CurrentWeapon->GetGunMesh()->SetHiddenInGame(false);
+				Mesh1P->SetHiddenInGame(false);
+			}
+		}
+	}
+}
+
+void AFPS_Character::SetFOV(float value)
+{
+	float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->ADSFov, value);
+
+	FirstPersonCameraComponent->SetFieldOfView(FOV);
+}
+
 void AFPS_Character::EquipSlot1()
 {
 	if (bFirstSlotFull)
 	{
 		if (CurrentWeapon!=WeaponSlot_01)
 		{
+			if (IsADSing)
+			{
+				ADSExit();
+			}
+
 			CurrentWeapon = WeaponSlot_01;
 			WeaponSlot = EWeaponSlot::FirstSlot;
 			EquipWeapon(WeaponSlot_01);
@@ -119,6 +182,11 @@ void AFPS_Character::EquipSlot2()
 	{
 		if (CurrentWeapon!=WeaponSlot_02)
 		{
+			if (IsADSing)
+			{
+				ADSExit();
+			}
+
 			CurrentWeapon = WeaponSlot_02;
 			WeaponSlot = EWeaponSlot::SecondSlot;
 			EquipWeapon(WeaponSlot_02);
@@ -309,6 +377,11 @@ void AFPS_Character::Reload()
 			{
 				if (!CurrentWeapon->MagStatus().bMagFull)
 				{
+					if (IsADSing)
+					{
+						ADSExit();
+					}
+
 					bIsReloading = true;
 					bCanFire = false;
 

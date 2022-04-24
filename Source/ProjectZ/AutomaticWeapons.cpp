@@ -1,28 +1,26 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "AssaultRifle.h"
+#include "AutomaticWeapons.h"
 #include "FPS_Character.h"
 #include "PistolAmmoShell.h"	
 
 
-AAssaultRifle::AAssaultRifle()
+AAutomaticWeapons::AAutomaticWeapons()
 {
-	WeaponType = EWeaponType::AssaultRifle;
-	SocketName = FName(TEXT("AssualtRifle_Socket"));
 	bIsWeaponAuto = true;
 }
 
-void AAssaultRifle::BeginPlay()
+void AAutomaticWeapons::BeginPlay()
 {
 	Super::BeginPlay();
 	AmmoData.Damage = 100.f;
 	AmmoData.CriticalHitChance = 10;
 
 	FTimerHandle RecoilTimerHandle;
-	GetWorldTimerManager().SetTimer(RecoilTimerHandle, this, &AAssaultRifle::AdvanceTimeLine, 0.05f, true, 0);
+	GetWorldTimerManager().SetTimer(RecoilTimerHandle, this, &AAutomaticWeapons::AdvanceTimeLine, 0.05f, true, 0);
 }
 
-void AAssaultRifle::Tick(float DeltaTime)
+void AAutomaticWeapons::Tick(float DeltaTime)
 {
 	AActor::Tick(DeltaTime);
 
@@ -42,20 +40,20 @@ void AAssaultRifle::Tick(float DeltaTime)
 }
 
 //Call auto fire frequently based on fire rate for as long as holding the button down(sets timer)
-void AAssaultRifle::WeaponFire()
+void AAutomaticWeapons::WeaponFire()
 {
 	Super::WeaponFire();
 
 	if (Player->bCanFire)
 	{
 		bIsWeaponFiring = true;
-		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAssaultRifle::AutoFire, AutomaticFireRate, true);
+		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAutomaticWeapons::AutoFire, AutomaticFireRate, true);
 
 		AmmoShellEject();
 	}
 }
 
-void AAssaultRifle::AutoFire()
+void AAutomaticWeapons::AutoFire()
 {
 	if (bIsWeaponFiring)
 	{
@@ -64,7 +62,7 @@ void AAssaultRifle::AutoFire()
 }
 
 //Stops calling the auto fire function when releasing the firing button(clears timer)
-void AAssaultRifle::StopFire()
+void AAutomaticWeapons::StopFire()
 {
 	if (bIsWeaponFiring)
 	{
@@ -75,7 +73,7 @@ void AAssaultRifle::StopFire()
 	}
 }
 
-void AAssaultRifle::AddRecoilPitch(float value)
+void AAutomaticWeapons::AddRecoilPitch(float value)
 {
 	if (RecoilTimelineDirection == ETimelineDirection::Forward)
 	{
@@ -88,7 +86,7 @@ void AAssaultRifle::AddRecoilPitch(float value)
 	}
 }
 
-void AAssaultRifle::RevertRecoil()
+void AAutomaticWeapons::RevertRecoil()
 {
 	if (-PlayerPitchInput > RecoilAllAdedPitch)
 	{
@@ -105,7 +103,7 @@ void AAssaultRifle::RevertRecoil()
 	}
 }
 
-void AAssaultRifle::AdvanceTimeLine()
+void AAutomaticWeapons::AdvanceTimeLine()
 {
 	if (RecoilTimelineDirection==ETimelineDirection::Forward)
 	{

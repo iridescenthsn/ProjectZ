@@ -6,8 +6,6 @@
 
 AShotGun::AShotGun()
 {
-	WeaponType = EWeaponType::ShotGun;
-	SocketName = FName(TEXT("ShotGun_Socket"));
 	bIsWeaponAuto = false;
 }
 
@@ -19,42 +17,17 @@ void AShotGun::BeginPlay()
 	AmmoData.CriticalHitChance = 0;
 }
 
-void AShotGun::WeaponFire()
+void AShotGun::Shoot()
 {
-	if (Player->bCanFire)
+	for (size_t i = 0; i < NumberOfPallets; i++)
 	{
-		if (MagStatus().bHasAmmo)
+		FHitResult HitResult = CalculateShot();
+
+		if (HitResult.bBlockingHit)
 		{
-			Player->CharacterFireWeapon.Broadcast(WeaponType);
-
-			CurrentAmmoInMag--;
-
-			//Stops gun recoil animation and sets the weapon shooting readiness state
-			Player->bCanFire = false;
-			GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, DelayBetweenShots, false);
-			GetWorldTimerManager().SetTimer(StopFiringHandle, this, &AWeaponBase::CharacterStopFireWeapon, StopFireRate, false);
-
-
-			for (int32 i = 1; i <= NumberOfPallets; i++)
-			{
-				FHitResult HitResult = CalculateShot();
-
-				SpawnDecal(HitResult);
-			}
-
-			GunMesh->PlayAnimation(FireAnimation, false);
-			AmmoShellEject();
+			AddDamage(HitResult);
 		}
-		else
-		{
-			StopFire();
-			Player->bCanFire = false;
 
-			if (HasReservedAmmo())
-			{
-				Player->Reload();
-			}
-		}
+		SpawnImpactEffect(HitResult);
 	}
 }
-

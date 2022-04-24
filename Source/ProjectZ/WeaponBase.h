@@ -31,10 +31,12 @@ public:
 USTRUCT(BlueprintType)
 struct FAmmoData
 {
-	GENERATED_USTRUCT_BODY()
-public:
+	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
 	float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
 	float CriticalHitChance;
 };
 
@@ -63,7 +65,7 @@ protected:
 	FHitResult CalculateShot();
 
 	//Apply damage to actors which can take Damage
-	void AddDamage(FHitResult Hit);
+	void AddDamage(const FHitResult &Hit);
 
 	//Ejects ammo shell after firing
 	void AmmoShellEject();
@@ -140,7 +142,7 @@ public:
 	EWeaponType WeaponType;
 
 	//Properties of the ammo of the gun such as damage
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
 	FAmmoData AmmoData;
 
 	FTimerHandle StopFiringHandle;
@@ -168,13 +170,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	bool bIsWeaponAuto;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float ADSFov=85.0f;
+
+
+	//function called when fire input pressed
 	virtual void WeaponFire();
+
+	//Shoots based on the weapon type
+	virtual void Shoot();
 
 	void SetWeaponState();
 
 	void CharacterStopFireWeapon();
 
-	void SpawnDecal(const FHitResult &HitResult);
+	void SpawnImpactEffect(const FHitResult &HitResult);
 
 	UFUNCTION()
 	virtual void StopFire();
@@ -214,4 +224,9 @@ public:
 	float PlayerPitchInput=0.0f;
 	
 	int32 NumberOfFramesToRevert = 0;
+
+public:
+
+	USkeletalMeshComponent* GetGunMesh() const { return GunMesh; }
+
 };
