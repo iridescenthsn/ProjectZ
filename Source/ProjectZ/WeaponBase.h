@@ -38,6 +38,9 @@ struct FAmmoData
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
 	float CriticalHitChance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
+	float DamageRadius;
 };
 
 

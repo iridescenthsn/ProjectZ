@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "WeaponBase.h"
+#include "CoreMinimal.h"	
+#include "WeaponBase.h"			
 #include "ProjectileWeapons.generated.h"
 
 class AProjectile;

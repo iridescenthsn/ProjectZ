@@ -4,7 +4,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Projectile.h"
-#include "Projectile_Tracer.h"
 
 void AProjectileWeapons::Shoot()
 {

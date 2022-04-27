@@ -43,7 +43,7 @@ protected:
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
-	void AddDamage(const FHitResult &Hit);
+	virtual void AddDamage(const FHitResult &Hit);
 
 	UFUNCTION()
 	void SpawnImpactEffect(const FHitResult& HitResult);

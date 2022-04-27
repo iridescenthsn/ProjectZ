@@ -24,12 +24,15 @@ AProjectile::AProjectile()
 	Mesh->SetupAttachment(Sphere);
 	Mesh->SetHiddenInGame(true);
 	Mesh->CastShadow = false;
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->InitialSpeed = 5000.0f;
 	ProjectileMovement->MaxSpeed = 5000.0f;
 	ProjectileMovement->ProjectileGravityScale = 1.0f;
 	ProjectileMovement->bShouldBounce = false;
+
+	this->InitialLifeSpan = 5.0f;
 
 }
 

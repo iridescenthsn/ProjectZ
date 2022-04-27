@@ -7,7 +7,7 @@
 AAI_Character::AAI_Character()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
@@ -18,7 +18,7 @@ void AAI_Character::BeginPlay()
 	
 }
 
-float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier, FHitResult HitResult)
+float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult)
 {
 	float LocalDamage = Damage;
 	bool bIsCriticalHit;
@@ -37,6 +37,20 @@ float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float Crit
 	return LocalDamage;
 }
 
+float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResult& HitResult)
+{
+	float LocalDamage = Damage;
+
+	float Distance = (GetActorLocation() - HitResult.ImpactPoint).Size();
+
+	UE_LOG(LogTemp,Warning,TEXT("Distance/radius is : %f"),Distance/Radius)
+
+	LocalDamage = (1 - (Distance / Radius)) * LocalDamage;
+	LocalDamage = FMath::Clamp(LocalDamage,0.0f, Damage);
+
+	return LocalDamage;
+}
+
 bool AAI_Character::UpdateHealth(float Damage)
 {
 	bool bLocalIsDead=false;
@@ -49,11 +63,18 @@ bool AAI_Character::UpdateHealth(float Damage)
 	return bLocalIsDead;
 }
 
-void AAI_Character::TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
+void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult)
 {
 	float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
 
 	UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
+
+	bIsDead = UpdateHealth(DamageTaken);
+}
+
+void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult)
+{
+	float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult);
 
 	bIsDead = UpdateHealth(DamageTaken);
 }

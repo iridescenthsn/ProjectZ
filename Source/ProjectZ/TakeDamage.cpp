@@ -5,7 +5,12 @@
 
 // Add default functionality here for any ITakeDamage functions that are not pure virtual.
 
-void ITakeDamage::TakeDamage(FAmmoData AmmoData, float CriticalHitModifier, FHitResult HitResult)
+void ITakeDamage::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier, const FHitResult& HitResult)
+{
+	return;
+}
+
+void ITakeDamage::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier, const FHitResult& HitResult)
 {
 	return;
 }
