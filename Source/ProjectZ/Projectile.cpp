@@ -15,7 +15,6 @@ AProjectile::AProjectile()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
-	RootComponent = Sphere;
 	Sphere->SetSphereRadius(8.0f);
 	Sphere->bReturnMaterialOnMove = true;
 	Sphere->SetHiddenInGame(true);
@@ -30,7 +29,9 @@ AProjectile::AProjectile()
 	ProjectileMovement->InitialSpeed = 5000.0f;
 	ProjectileMovement->MaxSpeed = 5000.0f;
 	ProjectileMovement->ProjectileGravityScale = 1.0f;
-	ProjectileMovement->bShouldBounce = false;
+	ProjectileMovement->bShouldBounce = true;
+
+	Sphere->OnComponentHit.AddUniqueDynamic(this, &AProjectile::OnHit);
 
 	this->InitialLifeSpan = 5.0f;
 
@@ -40,9 +41,6 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Sphere->OnComponentHit.AddUniqueDynamic(this, &AProjectile::OnHit);
-	
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)

@@ -14,10 +14,8 @@ class PROJECTZ_API AExplosiveProjectile : public AProjectile
 {
 	GENERATED_BODY()
 
-	virtual void AddDamage(const FHitResult& Hit) override;
-	
 protected:
-	
-	UPROPERTY(EditDefaultsOnly,Category="Radius")
-	float SphereRadius;
+
+	virtual void AddDamage(const FHitResult& Hit) override;
+
 };

@@ -10,6 +10,7 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class AImpactEffect;
+class USceneComponent;
 
 UCLASS()
 class PROJECTZ_API AProjectile : public AActor
@@ -30,6 +31,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* Mesh;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SceneRoot")
+	USceneComponent* SceneRoot;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 	UProjectileMovementComponent* ProjectileMovement;
 
@@ -40,7 +44,7 @@ protected:
 	float CriticalHitModifier;
 
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
 	virtual void AddDamage(const FHitResult &Hit);
@@ -56,5 +60,4 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UStaticMeshComponent* GetMesh() const { return Mesh; }
-
 };

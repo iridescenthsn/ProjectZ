@@ -37,7 +37,7 @@ protected:
 
 	//Calculates the amount of Damage applied based on distance
 	UFUNCTION()
-	float SetRadialDamage(float Damage, float Radius,const FHitResult& HitResult);
+	float SetRadialDamage(float Damage, float Radius,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector);
 
 	//Updates health and returns true if character is dead
 	UFUNCTION()
@@ -49,7 +49,7 @@ protected:
 
 	//Gets called when radial damage is applied
 	UFUNCTION()
-	void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult) override;
+	void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector) override;
 
 public:	
 	// Called every frame

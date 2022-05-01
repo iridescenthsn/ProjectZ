@@ -15,7 +15,7 @@ void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
 
 	TArray<AActor*> outActors;
 
-	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Hit.ImpactPoint, SphereRadius, ObjectTypes, NULL, ignoreActors, outActors);
+	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Hit.ImpactPoint, AmmoData.DamageRadius, ObjectTypes, NULL, ignoreActors, outActors);
 
 	for (size_t i = 0; i < outActors.Num(); i++)
 	{
@@ -25,7 +25,7 @@ void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
 			ITakeDamage* TakeDamageInterface = Cast<ITakeDamage>(HitActor);
 			if (TakeDamageInterface)
 			{
-				TakeDamageInterface->TakeRadialDamage(AmmoData, CriticalHitModifier, Hit);
+				TakeDamageInterface->TakeRadialDamage(AmmoData, CriticalHitModifier, Hit,Hit.ImpactPoint);
 			}
 		}
 	}

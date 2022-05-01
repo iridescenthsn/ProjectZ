@@ -22,6 +22,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 	UPROPERTY(EditDefaultsOnly,Category="Impact effect")
 	UParticleSystem* DefaultFX;
 
@@ -62,6 +63,6 @@ public:
 	FHitResult HitResult;
 	bool bIsUsingHitResult;
 
-	void initialize(FHitResult hit, bool IsUsingHit);
+	virtual void initialize(FHitResult hit, bool IsUsingHit);
 
 };

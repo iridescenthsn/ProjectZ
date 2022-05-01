@@ -10,7 +10,7 @@ void ITakeDamage::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifie
 	return;
 }
 
-void ITakeDamage::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier, const FHitResult& HitResult)
+void ITakeDamage::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier, const FHitResult& HitResult, const FVector& ExplosiveLocation)
 {
 	return;
 }

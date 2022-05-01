@@ -37,13 +37,13 @@ float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float Crit
 	return LocalDamage;
 }
 
-float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResult& HitResult)
+float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResult& HitResult, const FVector& ExplosiveLocation)
 {
 	float LocalDamage = Damage;
 
-	float Distance = (GetActorLocation() - HitResult.ImpactPoint).Size();
+	float Distance = (GetActorLocation() - ExplosiveLocation).Size();
 
-	UE_LOG(LogTemp,Warning,TEXT("Distance/radius is : %f"),Distance/Radius)
+	UE_LOG(LogTemp,Warning,TEXT("Distance is : %f"),Distance)
 
 	LocalDamage = (1 - (Distance / Radius)) * LocalDamage;
 	LocalDamage = FMath::Clamp(LocalDamage,0.0f, Damage);
@@ -72,9 +72,9 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 	bIsDead = UpdateHealth(DamageTaken);
 }
 
-void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult)
+void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation)
 {
-	float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult);
+	float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 
 	bIsDead = UpdateHealth(DamageTaken);
 }

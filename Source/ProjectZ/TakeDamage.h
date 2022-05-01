@@ -26,5 +26,5 @@ public:
 
 	virtual void TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult);
 
-	virtual void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult);
+	virtual void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult,const FVector& ExplosiveLocation=FVector::ZeroVector);
 };
