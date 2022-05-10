@@ -116,6 +116,12 @@ protected:
 	UFUNCTION()
 	void EquipWeaponFinished();
 
+	UFUNCTION()
+	void CheckIsNearWall();
+
+	UPROPERTY(EditAnywhere, Category = "Property")
+	float NearWallCheckRange=10;
+
 	void SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 	void SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn);
@@ -187,6 +193,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bCanFire = true;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Property")
+	bool bIsNearWall = false;
 
 	UFUNCTION(BlueprintCallable)
 	void OnFire();

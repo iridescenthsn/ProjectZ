@@ -13,6 +13,12 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 {
 	if (OtherActor != this)
 	{
+		/*
+		* on hit find the angle between surface normal and projectile 
+		* if its more than activation angle then explode
+		* if its less
+		* bounce and set timer on first bounce to explode
+		*/
 		float VectorDotProduct = FVector::DotProduct(Hit.ImpactNormal, GetActorForwardVector());
 		float Angle = FMath::RadiansToDegrees(FMath::Acos(VectorDotProduct));
 
@@ -25,6 +31,7 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 		}
 		else
 		{
+			//play bounce sound
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), BounceSound, Hit.ImpactPoint,BounceVolumeMultiplier);
 
 			if (!GetWorldTimerManager().IsTimerActive(ExplsionHandle))
@@ -56,10 +63,13 @@ void AGrenadeLauncherProjectile::AddDamageAtLocation(const FHitResult& Hit, cons
 
 	TArray<AActor*> outActors;
 
+	//make a sphere and find overlapping actors to apply damage to
 	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), ExplosiveLocation, AmmoData.DamageRadius, ObjectTypes, NULL, ignoreActors, outActors);
 
 	//DrawDebugSphere(GetWorld(), GetActorLocation(), AmmoData.DamageRadius, 12, FColor::Red, true, 10.0f);
 
+
+	//apply damage to actors who have TakeDamage interface
 	for (size_t i = 0; i < outActors.Num(); i++)
 	{
 		AActor* HitActor = outActors[i];

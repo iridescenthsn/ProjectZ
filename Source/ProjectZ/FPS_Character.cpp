@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -78,6 +79,7 @@ void AFPS_Character::MoveForward(float value)
 	if ( value!=0 )
 	{
 		AddMovementInput(GetActorForwardVector(), value);
+		CheckIsNearWall();
 	}
 }
 
@@ -87,20 +89,35 @@ void AFPS_Character::MoveRight(float value)
 	if (value != 0)
 	{
 		AddMovementInput(GetActorRightVector(), value);
+		CheckIsNearWall();
 	}
 }
 
 void AFPS_Character::Turn(float value)
 {
-	AddControllerYawInput(value);
+	if (value!=0)
+	{
+		AddControllerYawInput(value);
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->PlayerYawInput += value;
+		}
+
+		CheckIsNearWall();
+	}
 }
 
 void AFPS_Character::LookUp(float value)
 {
-	AddControllerPitchInput(value);
-	if (CurrentWeapon)
+	if (value!=0)
 	{
-		CurrentWeapon->PlayerPitchInput += value;
+		AddControllerPitchInput(value);
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->PlayerPitchInput += value;
+		}
+
+		CheckIsNearWall();
 	}
 }
 
@@ -343,9 +360,37 @@ void AFPS_Character::EquipWeaponFinished()
 	bCanFire = true;
 }
 
+void AFPS_Character::CheckIsNearWall()
+{
+	if (!CurrentWeapon)
+	{
+		return;
+	}
+
+	FVector startloc;
+	FVector endloc;
+
+	startloc = Mesh1P->GetSocketLocation(FName(TEXT("NearWallCheck_Socket")));
+	endloc = startloc + (UKismetMathLibrary::GetForwardVector(Mesh1P->GetSocketRotation(FName(TEXT("NearWallCheck_Socket")))) * NearWallCheckRange);
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(CurrentWeapon);
+	CollisionParams.AddIgnoredActor(this);
+
+	FCollisionObjectQueryParams TraceObjectParams;
+	TraceObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+
+	FHitResult Hit;
+
+	bIsNearWall = GetWorld()->LineTraceSingleByObjectType(Hit, startloc, endloc,TraceObjectParams,CollisionParams);
+
+	/*DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 0.2);
+	DrawDebugBox(GetWorld(), Hit.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 0.2);*/
+}
+
 void AFPS_Character::OnFire()
 {
-	if (bCanFire&&bHasWeapon)
+	if (bCanFire&&bHasWeapon&& !bIsNearWall)
 	{
 		if (CurrentWeapon->MagStatus().bHasAmmo)
 		{

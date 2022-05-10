@@ -85,6 +85,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	class UCameraComponent* Camera;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	TSubclassOf<class UCameraShake> CameraShakeBP;
+
 	//Gun mesh 1st person view
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class USkeletalMeshComponent* GunMesh;
@@ -132,8 +135,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float CriticalHitModifier=1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float AutomaticFireRate = 0.1;
 
 public:	
 	//Name of the socket the gun will attach to
@@ -165,9 +166,6 @@ public:
 	float AnimRecoil;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
-	bool bTimeLineisBound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
 	int32 ReverseTimeLineSpeed=1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
@@ -195,7 +193,7 @@ public:
 	UFUNCTION()
 	void AddRecoil();
 
-	void StartPlayingTimeLine();
+	virtual void StartPlayingTimeLine();
 
 	UFUNCTION()
 	virtual void AddRecoilPitch(float value);
@@ -218,15 +216,16 @@ public:
 
 	FMagStatus MagStatus();
 
-	float RecoilAllAdedPitch = 0.0f;
-
-	float RecoilAllreducedPitch = 0.0f;
+	float RecoilAllAddedPitch = 0.0f;
+	float RecoilAllAddedYaw = 0.0f;
 
 	float PitchPullDown = 0.0f;
+	float YawPullDown = 0.0f;
 
 	float PlayerPitchInput=0.0f;
+	float PlayerYawInput = 0.0f;
 	
-	int32 NumberOfFramesToRevert = 0;
+	int32 RecoilFrameCount = 0;
 
 public:
 

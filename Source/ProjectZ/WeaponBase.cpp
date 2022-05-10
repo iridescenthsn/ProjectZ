@@ -45,9 +45,12 @@ void AWeaponBase::BeginPlay()
 		RecoilPitchTMFloat.BindUFunction(this, FName(TEXT("AddRecoilPitch")));
 		RecoilTimeLine.AddInterpFloat(RecoilPitchCurve, RecoilPitchTMFloat);
 
-		FOnTimelineEvent RecoilTimeLineFinished;
-		RecoilTimeLineFinished.BindUFunction(this, FName(TEXT("StopFire")));
-		RecoilTimeLine.SetTimelineFinishedFunc(RecoilTimeLineFinished);
+		if (!bIsWeaponAuto)
+		{
+			FOnTimelineEvent RecoilTimeLineFinished;
+			RecoilTimeLineFinished.BindUFunction(this, FName(TEXT("StopFire")));
+			RecoilTimeLine.SetTimelineFinishedFunc(RecoilTimeLineFinished);
+		}
 	}
 	
 	//Timeline float for recoil Yaw binding
@@ -134,7 +137,8 @@ void AWeaponBase::AmmoShellEject()
 		UWorld* const World = GetWorld();
 		if (World != NULL)
 		{
-			const FRotator SpawnRotation = GunMesh->GetSocketRotation(FName(TEXT("AmmoEject")));
+			FRotator SpawnRotation = GunMesh->GetSocketRotation(FName(TEXT("AmmoEject")));
+			//SpawnRotation.Yaw = FMath::RandRange(-360,360);
 			const FVector SpawnLocation = GunMesh->GetSocketLocation(FName(TEXT("AmmoEject")));
 
 			//Set Spawn Collision Handling Override
@@ -163,11 +167,6 @@ void AWeaponBase::AddRecoil()
 
 void AWeaponBase::StartPlayingTimeLine()
 {
-	RecoilAllAdedPitch = 0.0f;
-	RecoilAllreducedPitch = 0.0f;
-	NumberOfFramesToRevert = 0;
-	PlayerPitchInput = 0.0f;
-
 	RecoilTimelineDirection = ETimelineDirection::Forward;
 	RecoilTimeLine.PlayFromStart();
 }
@@ -200,7 +199,7 @@ void AWeaponBase::AddRecoilYaw(float value)
 void AWeaponBase::RevertRecoil()
 {
 	RecoilTimelineDirection = ETimelineDirection::Backward;
-	RecoilTimeLine.Reverse();
+	RecoilTimeLine.ReverseFromEnd();
 }
 
 void AWeaponBase::StopRecoil()
@@ -233,6 +232,13 @@ void AWeaponBase::WeaponFire()
 			}
 
 			GunMesh->PlayAnimation(FireAnimation, false);
+
+			if (CameraShakeBP)
+			{
+				auto CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+				CameraManager->PlayCameraShake(CameraShakeBP);
+			}
+
 			AmmoShellEject();
 		}
 		else
