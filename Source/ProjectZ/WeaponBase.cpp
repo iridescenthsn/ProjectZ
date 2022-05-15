@@ -216,8 +216,17 @@ void AWeaponBase::WeaponFire()
 		{
 			bIsWeaponFiring = true;
 
-			Player->CharacterFireWeapon.Broadcast(WeaponType);
-
+			if (Player->IsADSing)
+			{
+				if (!bIsWeaponAuto)
+				{
+					Player->CharacterFireWeapon.Broadcast(WeaponType);
+				}
+			}
+			else
+			{
+				Player->CharacterFireWeapon.Broadcast(WeaponType);
+			}
 			CurrentAmmoInMag--;
 
 			Shoot();
@@ -235,7 +244,7 @@ void AWeaponBase::WeaponFire()
 
 			if (CameraShakeBP)
 			{
-				auto CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+				const auto CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 				CameraManager->PlayCameraShake(CameraShakeBP);
 			}
 

@@ -174,7 +174,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float ADSFov=85.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float ADSWalkSpeed=400.0f;
 
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float ZOffset;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float YOffset;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float XOffset;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float XRot;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float YRot;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
+	float ZRot;
+	
 	//function called when fire input pressed
 	virtual void WeaponFire();
 

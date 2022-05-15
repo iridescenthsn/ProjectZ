@@ -68,7 +68,7 @@ protected:
 	void MoveRight(float value);
 	void Turn(float value);
 	void LookUp(float value);
-	void jump();
+	void Jump();
 
 	void ADSEnter();
 	void ADSExit();
@@ -99,7 +99,7 @@ protected:
 	float WeaponPullAlpha;
 
 	UFUNCTION()
-	void SetFOV(float value);
+	void SetFOV(float value) const;
 
 	UFUNCTION()
 	void SetAlpha(float value);
@@ -138,9 +138,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ADS")
 	float TargetFOV=90.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ADS")
-	bool IsADSing = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* CurrentWeapon;
 
@@ -173,7 +170,7 @@ private:
 	void EquipSlot1();
 	void EquipSlot2();
 	void EquipWeapon(AWeaponBase* WeaponToEquip);
-	void ShowWeapon(AWeaponBase* WeaponToEquip);
+	void ShowWeapon(AWeaponBase* WeaponToEquip) const;
 	void Interact();
 
 	void ReloadPullDown();
@@ -194,8 +191,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bCanFire = true;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ADS")
+	bool IsADSing = false;
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Property")
 	bool bIsNearWall = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Property")
+	float MaxWalkSpeed=600.0f;
 
 	UFUNCTION(BlueprintCallable)
 	void OnFire();

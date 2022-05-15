@@ -27,6 +27,8 @@ AFPS_Character::AFPS_Character()
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
+
+	MaxWalkSpeed=GetCharacterMovement()->MaxWalkSpeed;
 }
 
 // Called when the game starts or when spawned
@@ -62,7 +64,7 @@ void AFPS_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFPS_Character::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPS_Character::MoveRight);
 
-	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AFPS_Character::jump);
+	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AFPS_Character::Jump);
 	PlayerInputComponent->BindAction("WeaponSlot1", IE_Pressed, this,&AFPS_Character::EquipSlot1);
 	PlayerInputComponent->BindAction("WeaponSlot2", IE_Pressed, this,&AFPS_Character::EquipSlot2);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPS_Character::OnFire);
@@ -121,7 +123,7 @@ void AFPS_Character::LookUp(float value)
 	}
 }
 
-void AFPS_Character::jump()
+void AFPS_Character::Jump()
 {
 	if (!(AFPS_Character::GetCharacterMovement()->IsFalling()))
 	{
@@ -133,10 +135,11 @@ void AFPS_Character::ADSEnter()
 {
 	if (IsADSing==false)
 	{
-		IsADSing = true;
-
 		if (CurrentWeapon)
 		{
+			GetCharacterMovement()->MaxWalkSpeed=CurrentWeapon->ADSWalkSpeed;
+			
+			IsADSing = true;
 			ADSTimeline.Play();
 			EventADSEnter.Broadcast();
 
@@ -153,9 +156,11 @@ void AFPS_Character::ADSExit()
 {
 	if (IsADSing==true)
 	{
-		IsADSing = false;
 		if (CurrentWeapon)
 		{
+			GetCharacterMovement()->MaxWalkSpeed=MaxWalkSpeed;
+			
+			IsADSing = false;
 			ADSTimeline.Reverse();
 			EventADSExit.Broadcast();
 
@@ -168,9 +173,9 @@ void AFPS_Character::ADSExit()
 	}
 }
 
-void AFPS_Character::SetFOV(float value)
+void AFPS_Character::SetFOV(float value) const
 {
-	float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->ADSFov, value);
+	const float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->ADSFov, value);
 
 	FirstPersonCameraComponent->SetFieldOfView(FOV);
 }
@@ -227,7 +232,7 @@ void AFPS_Character::EquipWeapon(AWeaponBase* WeaponToEquip)
 	}
 }
 
-void AFPS_Character::ShowWeapon(AWeaponBase* WeaponToEquip)
+void AFPS_Character::ShowWeapon(AWeaponBase* WeaponToEquip) const
 {
 	if (CurrentWeapon==WeaponSlot_01)
 	{
@@ -309,7 +314,9 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
 	WeaponSlot_02 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
-	WeaponSlot_02->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_02->SocketName);
+	WeaponSlot_02->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget,
+		true), WeaponSlot_02->SocketName);
+	
 	bSecondSlotFull = true;
 	bHasWeapon = true;
 	WeaponSlot = EWeaponSlot::SecondSlot;
@@ -321,7 +328,8 @@ void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 void AFPS_Character::SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
 	WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
-	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSlot_01->SocketName);
+	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget,
+		true), WeaponSlot_01->SocketName);
 	bFirstSlotFull = true;
 	bHasWeapon = true;
 	WeaponSlot = EWeaponSlot::FirstSlot;
@@ -367,11 +375,12 @@ void AFPS_Character::CheckIsNearWall()
 		return;
 	}
 
-	FVector startloc;
-	FVector endloc;
+	FVector Startloc;
+	FVector Endloc;
 
-	startloc = Mesh1P->GetSocketLocation(FName(TEXT("NearWallCheck_Socket")));
-	endloc = startloc + (UKismetMathLibrary::GetForwardVector(Mesh1P->GetSocketRotation(FName(TEXT("NearWallCheck_Socket")))) * NearWallCheckRange);
+	Startloc = Mesh1P->GetSocketLocation(FName(TEXT("NearWallCheck_Socket")));
+	Endloc = Startloc + (UKismetMathLibrary::GetForwardVector(Mesh1P->GetSocketRotation
+		(FName(TEXT("NearWallCheck_Socket")))) * NearWallCheckRange);
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(CurrentWeapon);
@@ -382,9 +391,10 @@ void AFPS_Character::CheckIsNearWall()
 
 	FHitResult Hit;
 
-	bIsNearWall = GetWorld()->LineTraceSingleByObjectType(Hit, startloc, endloc,TraceObjectParams,CollisionParams);
+	bIsNearWall = GetWorld()->LineTraceSingleByObjectType(Hit, Startloc, Endloc,
+		TraceObjectParams,CollisionParams);
 
-	/*DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 0.2);
+	/*DrawDebugLine(GetWorld(), Startloc, Endloc, FColor::Green, false, 0.2);
 	DrawDebugBox(GetWorld(), Hit.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 0.2);*/
 }
 
@@ -466,7 +476,8 @@ void AFPS_Character::SetAlpha(float value)
 void AFPS_Character::OnReloadPullDownFinished()
 {
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFPS_Character::ReloadPullUp, CurrentWeapon->ReloadTime, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFPS_Character::ReloadPullUp,
+		CurrentWeapon->ReloadTime, false);
 }
 
 void AFPS_Character::OnReloadPullUpFinished()
