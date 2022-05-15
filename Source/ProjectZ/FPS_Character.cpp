@@ -138,6 +138,8 @@ void AFPS_Character::ADSEnter()
 		if (CurrentWeapon)
 		{
 			GetCharacterMovement()->MaxWalkSpeed=CurrentWeapon->ADSWalkSpeed;
+
+			CurrentWeapon->BulletSpread=CurrentWeapon->ADSBulletSpread;
 			
 			IsADSing = true;
 			ADSTimeline.Play();
@@ -159,6 +161,7 @@ void AFPS_Character::ADSExit()
 		if (CurrentWeapon)
 		{
 			GetCharacterMovement()->MaxWalkSpeed=MaxWalkSpeed;
+			CurrentWeapon->BulletSpread=CurrentWeapon->HipFireBulletSpread;
 			
 			IsADSing = false;
 			ADSTimeline.Reverse();

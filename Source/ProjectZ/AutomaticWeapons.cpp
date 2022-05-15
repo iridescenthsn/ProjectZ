@@ -52,8 +52,15 @@ void AAutomaticWeapons::WeaponFire()
 	if (Player->bCanFire)
 	{
 		bIsWeaponFiring = true;
+		if (!Player->IsADSing)
+		{
+			Player->CharacterFireWeapon.Broadcast(WeaponType);
+		}
+		else
+		{
+			Player->CharacterStopFireWeapon.Broadcast();
+		}
 		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAutomaticWeapons::AutoFire, AutomaticFireRate, true);
-		UE_LOG(LogTemp,Warning,TEXT("WeaponFire"))
 	}
 }
 

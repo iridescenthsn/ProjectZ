@@ -65,13 +65,13 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	//Calculates bullet spread and line traces with it
-	FHitResult CalculateShot();
+	FHitResult CalculateShot() const;
 
 	//Apply damage to actors which can take Damage
-	void AddDamage(const FHitResult &Hit);
+	void AddDamage(const FHitResult &Hit) const;
 
 	//Ejects ammo shell after firing
-	void AmmoShellEject();
+	void AmmoShellEject() const;
 
 	//Ammo shell to Spawn
 	UPROPERTY(EditDefaultsOnly, Category = "Ammoshell")
@@ -130,9 +130,6 @@ protected:
 	int32 MaxReservedAmmo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float BulletSpread=300;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float CriticalHitModifier=1;
 
 
@@ -177,6 +174,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float ADSWalkSpeed=400.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float HipFireBulletSpread=300;
+
+	UPROPERTY(VisibleAnywhere,Category="Property")
+	float BulletSpread;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float ADSBulletSpread=0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float 
+
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
 	float ZOffset;
 
@@ -205,7 +214,7 @@ public:
 
 	void CharacterStopFireWeapon();
 
-	void SpawnImpactEffect(const FHitResult &HitResult);
+	void SpawnImpactEffect(const FHitResult &HitResult) const;
 
 	UFUNCTION()
 	virtual void StopFire();
@@ -230,11 +239,11 @@ public:
 	UFUNCTION()
 	void Reload();
 
-	bool HasReservedAmmo();
+	bool HasReservedAmmo() const;
 
 	bool bIsWeaponFiring;
 
-	FMagStatus MagStatus();
+	FMagStatus MagStatus() const;
 
 	float RecoilAllAddedPitch = 0.0f;
 	float RecoilAllAddedYaw = 0.0f;

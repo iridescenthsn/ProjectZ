@@ -9,14 +9,18 @@
 
 void AProjectileWeapons::Shoot()
 {
-	FHitResult HitResult = CalculateShot();
-
-	FVector Tracer_SpawnLocation = GetGunMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
+	const FVector Tracer_SpawnLocation = GetGunMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
 
 	FActorSpawnParameters ProjectileSpawnParameters;
 	ProjectileSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
 
-	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(Projectile_BP, HitResult.TraceStart, Camera->GetComponentRotation(), ProjectileSpawnParameters);
+	FRotator BulletSpreadRot;
+	BulletSpreadRot.Pitch=Camera->GetComponentRotation().Pitch+ FMath::RandRange(-BulletSpread,+BulletSpread);
+	BulletSpreadRot.Yaw=Camera->GetComponentRotation().Yaw +FMath::RandRange(-BulletSpread,+BulletSpread);
+	BulletSpreadRot.Roll=Camera->GetComponentRotation().Roll;
+
+	const AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(Projectile_BP, Camera->GetComponentLocation(),
+		BulletSpreadRot, ProjectileSpawnParameters);
 
 	Projectile->GetMesh()->SetWorldLocation(Tracer_SpawnLocation);
 	Projectile->GetMesh()->SetHiddenInGame(false);

@@ -61,8 +61,10 @@ void AWeaponBase::BeginPlay()
 		RecoilTimeLine.AddInterpFloat(RecoilYawCurve, RecoilYawTMFloat);
 	}
 	
-	//timeline shouldnt loop
+	//timeline shouldn't loop
 	RecoilTimeLine.SetLooping(false);
+
+	BulletSpread=HipFireBulletSpread;
 }
 
 // Called every frame
@@ -85,14 +87,15 @@ void AWeaponBase::Tick(float DeltaTime)
 	}
 }
 
-FHitResult AWeaponBase::CalculateShot()
+FHitResult AWeaponBase::CalculateShot() const
 {
 	//Randomize bullet rays
-	FVector startloc = Camera->GetComponentLocation();
-	FVector endloc = startloc + (UKismetMathLibrary::GetForwardVector(Camera->GetComponentRotation()) * LineTraceRange);
-	endloc.X = endloc.X + FMath::RandRange(-BulletSpread, BulletSpread);
-	endloc.Y = endloc.Y + FMath::RandRange(-BulletSpread, BulletSpread);
-	endloc.Z = endloc.Z + FMath::RandRange(-BulletSpread, BulletSpread);
+	FVector Startloc = Camera->GetComponentLocation();
+	FVector Endloc = Startloc + (UKismetMathLibrary::GetForwardVector(Camera->GetComponentRotation()) * LineTraceRange);
+	
+	Endloc.X = Endloc.X + FMath::RandRange(-BulletSpread, BulletSpread);
+	Endloc.Y = Endloc.Y + FMath::RandRange(-BulletSpread, BulletSpread);
+	Endloc.Z = Endloc.Z + FMath::RandRange(-BulletSpread, BulletSpread);
 
 	FHitResult HitResult;
 
@@ -106,17 +109,17 @@ FHitResult AWeaponBase::CalculateShot()
 	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldDynamic);
 	ObjectsToTrace.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
 
-	bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult,startloc,endloc,ObjectsToTrace,ActorToIgnore);
+	GetWorld()->LineTraceSingleByObjectType(HitResult,Startloc,Endloc,ObjectsToTrace,ActorToIgnore);
 
-	//DrawDebugLine(GetWorld(), startloc, endloc, FColor::Green, false, 4);
+	//DrawDebugLine(GetWorld(), Startloc, Endloc, FColor::Green, false, 4);
 	//DrawDebugBox(GetWorld(), HitResult.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 4);
 
 	return HitResult;
 }
 
 
-//Add damage to the hit actor if it has takedamage interface
-void AWeaponBase::AddDamage(const FHitResult &Hit)
+//Add damage to the hit actor if it has TakeDamage interface
+void AWeaponBase::AddDamage(const FHitResult &Hit) const
 {
 	AActor* HitActor = Hit.GetActor();
 	if (HitActor)
@@ -130,15 +133,14 @@ void AWeaponBase::AddDamage(const FHitResult &Hit)
 }
 
 
-void AWeaponBase::AmmoShellEject()
+void AWeaponBase::AmmoShellEject() const
 {
-	if (AmmoShellClass != NULL)
+	if (AmmoShellClass != nullptr)
 	{
 		UWorld* const World = GetWorld();
-		if (World != NULL)
+		if (World != nullptr)
 		{
-			FRotator SpawnRotation = GunMesh->GetSocketRotation(FName(TEXT("AmmoEject")));
-			//SpawnRotation.Yaw = FMath::RandRange(-360,360);
+			const FRotator SpawnRotation = GunMesh->GetSocketRotation(FName(TEXT("AmmoEject")));
 			const FVector SpawnLocation = GunMesh->GetSocketLocation(FName(TEXT("AmmoEject")));
 
 			//Set Spawn Collision Handling Override
@@ -215,18 +217,7 @@ void AWeaponBase::WeaponFire()
 		if (MagStatus().bHasAmmo)
 		{
 			bIsWeaponFiring = true;
-
-			if (Player->IsADSing)
-			{
-				if (!bIsWeaponAuto)
-				{
-					Player->CharacterFireWeapon.Broadcast(WeaponType);
-				}
-			}
-			else
-			{
-				Player->CharacterFireWeapon.Broadcast(WeaponType);
-			}
+			
 			CurrentAmmoInMag--;
 
 			Shoot();
@@ -234,6 +225,8 @@ void AWeaponBase::WeaponFire()
 			//Stops gun recoil animation and sets the weapon shooting readiness state
 			if (!bIsWeaponAuto)
 			{
+				Player->CharacterFireWeapon.Broadcast(WeaponType);
+				
 				Player->bCanFire = false;
 				GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, DelayBetweenShots, false);
 
@@ -281,9 +274,9 @@ void AWeaponBase::CharacterStopFireWeapon()
 	GetWorldTimerManager().ClearTimer(StopFiringHandle);
 }
 
-void AWeaponBase::SpawnImpactEffect(const FHitResult &HitResult)
+void AWeaponBase::SpawnImpactEffect(const FHitResult &HitResult) const
 {
-	FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
+	const FTransform SpawnTransForm(FRotator(0, 0, 0), HitResult.ImpactPoint);
 	AImpactEffect* ImpactEffect = Cast<AImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), ImpactEffectBP, SpawnTransForm));
 
 	if (ImpactEffect != nullptr)
@@ -316,12 +309,12 @@ void AWeaponBase::StopFire()
 //Reload function that fills the mag
 void AWeaponBase::Reload()
 {
-	//fill the mag full or fill with any ammo thats left
+	//fill the mag full or fill with any ammo that's left
 	CurrentAmmoInMag = FMath::Min(MaxAmmoInMag, CurrentReservedAmmo);
 	CurrentReservedAmmo -= CurrentAmmoInMag;
 }
 
-bool AWeaponBase::HasReservedAmmo()
+bool AWeaponBase::HasReservedAmmo() const
 {
 	if (CurrentReservedAmmo > 0)
 	{
@@ -333,7 +326,7 @@ bool AWeaponBase::HasReservedAmmo()
 	}
 }
 
-FMagStatus AWeaponBase::MagStatus()
+FMagStatus AWeaponBase::MagStatus() const
 {
 	FMagStatus Mag;
 	CurrentAmmoInMag > 0 ? Mag.bHasAmmo = true : Mag.bHasAmmo = false;
