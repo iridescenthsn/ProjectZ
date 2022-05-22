@@ -137,15 +137,15 @@ void AFPS_Character::ADSEnter()
 	{
 		if (CurrentWeapon)
 		{
-			GetCharacterMovement()->MaxWalkSpeed=CurrentWeapon->ADSWalkSpeed;
+			GetCharacterMovement()->MaxWalkSpeed=CurrentWeapon->GetAdsWalkSpeed();
 
-			CurrentWeapon->BulletSpread=CurrentWeapon->ADSBulletSpread;
+			CurrentWeapon->SetBulletSpread(CurrentWeapon->GetAdsBulletSpread());
 			
 			IsADSing = true;
 			ADSTimeline.Play();
 			EventADSEnter.Broadcast();
 
-			if (CurrentWeapon->WeaponType == EWeaponType::SniperRifle)
+			if (CurrentWeapon->GetWeaponType() == EWeaponType::SniperRifle)
 			{
 				CurrentWeapon->GetGunMesh()->SetHiddenInGame(true);
 				Mesh1P->SetHiddenInGame(true);
@@ -161,13 +161,13 @@ void AFPS_Character::ADSExit()
 		if (CurrentWeapon)
 		{
 			GetCharacterMovement()->MaxWalkSpeed=MaxWalkSpeed;
-			CurrentWeapon->BulletSpread=CurrentWeapon->HipFireBulletSpread;
+			CurrentWeapon->SetBulletSpread(CurrentWeapon->GetHipFireBulletSpread());
 			
 			IsADSing = false;
 			ADSTimeline.Reverse();
 			EventADSExit.Broadcast();
 
-			if (CurrentWeapon->WeaponType == EWeaponType::SniperRifle)
+			if (CurrentWeapon->GetWeaponType() == EWeaponType::SniperRifle)
 			{
 				CurrentWeapon->GetGunMesh()->SetHiddenInGame(false);
 				Mesh1P->SetHiddenInGame(false);
@@ -178,7 +178,7 @@ void AFPS_Character::ADSExit()
 
 void AFPS_Character::SetFOV(float value) const
 {
-	const float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->ADSFov, value);
+	const float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->GetAdsFov(), value);
 
 	FirstPersonCameraComponent->SetFieldOfView(FOV);
 }
@@ -318,7 +318,7 @@ void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
 	WeaponSlot_02 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
 	WeaponSlot_02->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget,
-		true), WeaponSlot_02->SocketName);
+		true), WeaponSlot_02->GetSocketName());
 	
 	bSecondSlotFull = true;
 	bHasWeapon = true;
@@ -332,7 +332,7 @@ void AFPS_Character::SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 {
 	WeaponSlot_01 = GetWorld()->SpawnActor<AWeaponBase>(WeaponToSpawn);
 	WeaponSlot_01->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget,
-		true), WeaponSlot_01->SocketName);
+		true), WeaponSlot_01->GetSocketName());
 	bFirstSlotFull = true;
 	bHasWeapon = true;
 	WeaponSlot = EWeaponSlot::FirstSlot;
@@ -409,8 +409,8 @@ void AFPS_Character::OnFire()
 		{
 			CurrentWeapon->PlayerPitchInput=0.0f;
 			CurrentWeapon->PlayerYawInput=0.0f;
-			CurrentWeapon->RecoilAllAddedPitch=0.0f;
-			CurrentWeapon->RecoilAllAddedYaw=0.0f;
+			CurrentWeapon->SetRecoilAllAddedPitch(0.0f);
+			CurrentWeapon->SetRecoilAllAddedYaw(0.0f);
 			
 			CurrentWeapon->WeaponFire();
 		}
@@ -423,7 +423,7 @@ void AFPS_Character::OnFire()
 
 void AFPS_Character::StopFire()
 {
-	if (CurrentWeapon&& CurrentWeapon->bIsWeaponAuto)
+	if (CurrentWeapon&& CurrentWeapon->IsWeaponAuto())
 	{
 		CurrentWeapon->StopFire();
 	}
@@ -484,7 +484,7 @@ void AFPS_Character::OnReloadPullDownFinished()
 {
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFPS_Character::ReloadPullUp,
-		CurrentWeapon->ReloadTime, false);
+		CurrentWeapon->GetReloadTime(), false);
 }
 
 void AFPS_Character::OnReloadPullUpFinished()

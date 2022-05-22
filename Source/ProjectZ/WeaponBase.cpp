@@ -74,20 +74,8 @@ void AWeaponBase::BeginPlay()
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (RecoilTimelineDirection==ETimelineDirection::Forward)
-	{
-		RecoilTimeLine.TickTimeline(DeltaTime);
-	}
 	
-	//Advance the timeline faster when reverting recoil
-	if (RecoilTimelineDirection==ETimelineDirection::Backward)
-	{
-		for (size_t i = 0; i < ReverseTimeLineSpeed; i++)
-		{
-			RecoilTimeLine.TickTimeline(DeltaTime);
-		}
-	}
+	RecoilTimeLine.TickTimeline(DeltaTime);
 }
 
 FHitResult AWeaponBase::CalculateShot() const
@@ -262,11 +250,6 @@ void AWeaponBase::CalculateReverseRecoil()
 		}
 	}
 	YawPullDown=RecoilAllAddedYaw/100;
-}
-
-void AWeaponBase::StopRecoil()
-{
-	
 }
 
 //Firing method on weapon reduces 1 ammo everytime its called
