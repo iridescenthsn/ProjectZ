@@ -407,8 +407,12 @@ void AFPS_Character::OnFire()
 	{
 		if (CurrentWeapon->MagStatus().bHasAmmo)
 		{
+			CurrentWeapon->PlayerPitchInput=0.0f;
+			CurrentWeapon->PlayerYawInput=0.0f;
+			CurrentWeapon->RecoilAllAddedPitch=0.0f;
+			CurrentWeapon->RecoilAllAddedYaw=0.0f;
+			
 			CurrentWeapon->WeaponFire();
-			CurrentWeapon->AddRecoil();
 		}
 		else if (CurrentWeapon->HasReservedAmmo())
 		{

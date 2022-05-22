@@ -65,6 +65,9 @@ void AWeaponBase::BeginPlay()
 	RecoilTimeLine.SetLooping(false);
 
 	BulletSpread=HipFireBulletSpread;
+
+	PerBulletRecoilPitch.SetNum(MaxAmmoInMag);
+	PerBulletRecoilYaw.SetNum(MaxAmmoInMag);
 }
 
 // Called every frame
@@ -169,44 +172,101 @@ void AWeaponBase::AddRecoil()
 
 void AWeaponBase::StartPlayingTimeLine()
 {
-	RecoilTimelineDirection = ETimelineDirection::Forward;
 	RecoilTimeLine.PlayFromStart();
 }
 
 //Adds recoil pitch when timeline is going forward and revert recoil when going backwards
-void AWeaponBase::AddRecoilPitch(float value)
+void AWeaponBase::AddRecoilPitch(float Value)
 {
-	if (RecoilTimelineDirection == ETimelineDirection::Forward)
-	{
-		Player->AddControllerPitchInput(-value);
-	}
-	else
-	{
-		Player->AddControllerPitchInput(value);
-	}
+	const float PitchToAdd= FMath::Lerp(PerBulletRecoilPitch[NumberOfShot],0.0f,Value);
+	Player->AddControllerPitchInput(-PitchToAdd);
+
+	RecoilAllAddedPitch-=PitchToAdd;
 }
 
 
 //Add yaw recoil when timeline is going forward
-void AWeaponBase::AddRecoilYaw(float value)
+void AWeaponBase::AddRecoilYaw(float Value)
 {
-	if (RecoilTimelineDirection==ETimelineDirection::Forward)
-	{
-		Player->AddControllerYawInput(value);
-	}
+	const float YawToAdd=FMath::Lerp(PerBulletRecoilYaw[NumberOfShot],0.0f,Value);
+	Player->AddControllerYawInput(YawToAdd);
+
+	RecoilAllAddedYaw+=YawToAdd;
 }
 
 
 //Calculate Revert recoil based on the amount of the recoil added and player pitch input
 void AWeaponBase::RevertRecoil()
 {
-	RecoilTimelineDirection = ETimelineDirection::Backward;
-	RecoilTimeLine.ReverseFromEnd();
+	Player->AddControllerPitchInput(-PitchPullDown);
+	Player->AddControllerYawInput(-YawPullDown);
+
+	TimesCalled++;
+
+	if (TimesCalled==100)
+	{
+		GetWorldTimerManager().ClearTimer(RecoilReverseHandle);
+		TimesCalled=0;
+	}
+}
+
+void AWeaponBase::ResetRecoil()
+{
+	if (!bIsWeaponFiring)
+	{
+		NumberOfShot--;
+		NumberOfShot=FMath::Clamp(NumberOfShot,0,MaxAmmoInMag-1);
+		if (NumberOfShot==0)
+		{
+			GetWorldTimerManager().ClearTimer(RecoilResetHandle);
+			UE_LOG(LogTemp,Warning,TEXT("reset"))
+		}
+	}
+}
+
+void AWeaponBase::CalculateReverseRecoil()
+{
+	/*
+	If same directions then ignore player input
+
+	If opposite directions
+
+		If player input abs is less than recoil abs then add them together
+
+		If player input abs is more than or equal to recoil abs then dont pull 
+	*/
+
+	if (FMath::Sign(PlayerPitchInput)!=FMath::Sign(RecoilAllAddedPitch))
+	{
+		UE_LOG(LogTemp,Warning,TEXT("pitch pull down : %f Yaw pull down : %f"),RecoilAllAddedPitch,RecoilAllAddedYaw)
+		if (FMath::Abs(PlayerPitchInput)<FMath::Abs(RecoilAllAddedPitch))
+		{
+			RecoilAllAddedPitch += PlayerPitchInput;
+		}
+		else
+		{
+			RecoilAllAddedPitch = 0;
+		}
+	}
+	PitchPullDown=RecoilAllAddedPitch/100;
+
+	if (FMath::Sign(PlayerYawInput) != FMath::Sign(RecoilAllAddedYaw))
+	{
+		if (FMath::Abs(PlayerYawInput) < FMath::Abs(RecoilAllAddedYaw))
+		{
+			RecoilAllAddedYaw += PlayerYawInput;
+		}
+		else
+		{
+			RecoilAllAddedYaw = 0;
+		}
+	}
+	YawPullDown=RecoilAllAddedYaw/100;
 }
 
 void AWeaponBase::StopRecoil()
 {
-	RecoilTimeLine.Stop();
+	
 }
 
 //Firing method on weapon reduces 1 ammo everytime its called
@@ -221,6 +281,11 @@ void AWeaponBase::WeaponFire()
 			CurrentAmmoInMag--;
 
 			Shoot();
+
+			AddRecoil();
+
+			NumberOfShot++;
+			NumberOfShot=FMath::Clamp(NumberOfShot,0,MaxAmmoInMag-1);
 
 			//Stops gun recoil animation and sets the weapon shooting readiness state
 			if (!bIsWeaponAuto)
@@ -288,21 +353,17 @@ void AWeaponBase::SpawnImpactEffect(const FHitResult &HitResult) const
 
 void AWeaponBase::StopFire()
 {
-	bIsWeaponFiring = false;
-	Player->CharacterStopFireWeapon.Broadcast();
-
-	if (RecoilTimelineDirection==ETimelineDirection::Forward)
+	if (bIsWeaponFiring)
 	{
-		if (RecoilYawCurve && RecoilPitchCurve)
-		{
-			StopRecoil();
-			RevertRecoil();
-		}
-		else if (RecoilPitchCurve && !bIsWeaponAuto)
-		{
-			StopRecoil();
-			RevertRecoil();
-		}
+		Player->CharacterStopFireWeapon.Broadcast();
+
+		CalculateReverseRecoil();
+
+		GetWorldTimerManager().SetTimer(RecoilReverseHandle, this, &AWeaponBase::RevertRecoil, RecoilReverseSpeed, true);
+		
+		GetWorldTimerManager().SetTimer(RecoilResetHandle, this, &AWeaponBase::ResetRecoil, ResetRecoilRate, true);
+
+		bIsWeaponFiring = false;
 	}
 }
 

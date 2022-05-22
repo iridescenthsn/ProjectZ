@@ -25,18 +25,9 @@ public:
 private:
 
 	FTimerHandle AutoFireHandle;
-	FTimerHandle RecoilResetHandle;
 
-	void WeaponFire() override;
-	void StopFire() override;
-
-	virtual void StartPlayingTimeLine() override;
-
-	void ResetRecoilTimeline();
-
-	virtual void AddRecoilPitch(float value) override;
-	virtual void AddRecoilYaw(float value) override;
-	virtual void RevertRecoil() override;
+	virtual void WeaponFire() override;
+	virtual void StopFire() override;
 
 	void AutoFire();
 
@@ -45,9 +36,5 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float AutomaticFireRate = 0.1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float ResetRecoilRate=0.2;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Property")
-	bool bIsRecoilReset = true;
+	
 };

@@ -104,8 +104,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
 	UCurveFloat* RecoilYawCurve;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Recoil")
+	
 	FTimeline RecoilTimeLine;
 
 	UPROPERTY()
@@ -150,6 +149,10 @@ public:
 
 	FTimerHandle ShootingDelayHandle;
 
+	FTimerHandle RecoilResetHandle;
+	
+	FTimerHandle RecoilReverseHandle;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recoil")
 	float StopFireRate=0.1f;
 
@@ -182,9 +185,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float ADSBulletSpread=0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float 
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
 	float ZOffset;
@@ -225,13 +225,17 @@ public:
 	virtual void StartPlayingTimeLine();
 
 	UFUNCTION()
-	virtual void AddRecoilPitch(float value);
+	virtual void AddRecoilPitch(float Value);
 
 	UFUNCTION()
-	virtual void AddRecoilYaw(float value);
+	virtual void AddRecoilYaw(float Value);
 
 	UFUNCTION()
 	virtual void RevertRecoil();
+
+	void ResetRecoil();
+
+	void CalculateReverseRecoil();
 
 	UFUNCTION()
 	void StopRecoil();
@@ -254,7 +258,21 @@ public:
 	float PlayerPitchInput=0.0f;
 	float PlayerYawInput = 0.0f;
 	
-	int32 RecoilFrameCount = 0;
+	int32 NumberOfShot=0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float ResetRecoilRate=0.2;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
+	TArray<float> PerBulletRecoilPitch;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
+	TArray<float> PerBulletRecoilYaw;
+
+	int32 TimesCalled=0;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
+	float RecoilReverseSpeed=0.001f;
 
 public:
 
