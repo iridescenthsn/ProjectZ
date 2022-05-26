@@ -19,6 +19,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnADSEnterDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnADSExitDelegate);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHudWeaponUpdateDelegate);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMainHudUpdateDelegate);
 
 class UCurveFloat;
 class AWeaponBase;
@@ -58,6 +61,12 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnADSExitDelegate EventADSExit;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnHudWeaponUpdateDelegate UpdateWeaponHud;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnMainHudUpdateDelegate UpdateMainHud;
+
 	bool PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 protected:
@@ -68,7 +77,7 @@ protected:
 	void MoveRight(float value);
 	void Turn(float value);
 	void LookUp(float value);
-	void Jump();
+	virtual void Jump() override;
 
 	void ADSEnter();
 	void ADSExit();
@@ -89,7 +98,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	UCurveFloat* ADSCurve;
 
-	FTimeline ReloadCurveTimeLine;
+	FTimeline ReloadPullDownTimeLine;
+
+	FTimeline ReloadPullUpTimeline;
 
 	FTimeline EquipWeaponTimeLine;
 
@@ -100,7 +111,7 @@ protected:
 
 	UFUNCTION()
 	void SetFOV(float value) const;
-
+	
 	UFUNCTION()
 	void SetAlpha(float value);
 
@@ -169,13 +180,11 @@ private:
 
 	void EquipSlot1();
 	void EquipSlot2();
-	void EquipWeapon(AWeaponBase* WeaponToEquip);
-	void ShowWeapon(AWeaponBase* WeaponToEquip) const;
+	void EquipWeapon();
+	void ShowWeapon() const;
 	void Interact();
-
-	void ReloadPullDown();
+	
 	void ReloadPullUp();
-	void EquipWeaponTimelineFunc();
 
 public:	
 	// Called every frame

@@ -354,8 +354,18 @@ void AWeaponBase::StopFire()
 void AWeaponBase::Reload()
 {
 	//fill the mag full or fill with any ammo that's left
-	CurrentAmmoInMag = FMath::Min(MaxAmmoInMag, CurrentReservedAmmo);
-	CurrentReservedAmmo -= CurrentAmmoInMag;
+	const int32 ToFill= MaxAmmoInMag-CurrentAmmoInMag;
+	
+	if (CurrentReservedAmmo>=ToFill)
+	{
+		CurrentAmmoInMag=MaxAmmoInMag;
+		CurrentReservedAmmo-=ToFill;
+	}
+	else
+	{
+		CurrentAmmoInMag+=CurrentReservedAmmo;
+		CurrentReservedAmmo=0;
+	}
 }
 
 bool AWeaponBase::HasReservedAmmo() const

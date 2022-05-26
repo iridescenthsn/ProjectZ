@@ -42,13 +42,54 @@ void AFPS_Character::BeginPlay()
 		ADSTimelineFloat.BindUFunction(this, FName(TEXT("SetFOV")));
 		ADSTimeline.AddInterpFloat(ADSCurve, ADSTimelineFloat);
 	}
+
+	if (EquipWeaponCurve)
+	{
+		FOnTimelineEvent TimeLineFinished;
+		TimeLineFinished.BindUFunction(this, FName("EquipWeaponFinished"));
+		EquipWeaponTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
+
+		FOnTimelineEvent WeaponSwitchTime;
+		WeaponSwitchTime.BindUFunction(this, FName("WeaponSwitch"));
+		EquipWeaponTimeLine.AddEvent(0.25, WeaponSwitchTime);
+
+		FOnTimelineFloat TimeLineProgress;
+		TimeLineProgress.BindUFunction(this, FName("SetAlpha"));
+		EquipWeaponTimeLine.AddInterpFloat(EquipWeaponCurve, TimeLineProgress);
+		EquipWeaponTimeLine.SetLooping(false);
+	}
+	
+	if (PullDownCurve)
+	{
+		FOnTimelineEvent PullDownFinished;
+		PullDownFinished.BindUFunction(this, FName("OnReloadPullDownFinished"));
+		ReloadPullDownTimeLine.SetTimelineFinishedFunc(PullDownFinished);
+		
+		FOnTimelineFloat PullDownProgress;
+		PullDownProgress.BindUFunction(this, FName("SetAlpha")); 
+		ReloadPullDownTimeLine.AddInterpFloat(PullDownCurve, PullDownProgress);
+		ReloadPullDownTimeLine.SetLooping(false);
+	}
+	
+	if (PullUpCurve)
+	{
+		FOnTimelineEvent PullUpFinished;
+		PullUpFinished.BindUFunction(this, FName("OnReloadPullUpFinished"));
+		ReloadPullUpTimeline.SetTimelineFinishedFunc(PullUpFinished);
+	 
+		FOnTimelineFloat PullUpProgress;
+		PullUpProgress.BindUFunction(this, FName("SetAlpha"));
+		ReloadPullUpTimeline.AddInterpFloat(PullUpCurve, PullUpProgress);
+		ReloadPullUpTimeline.SetLooping(false);
+	}
 }
 
 // Called every frame
 void AFPS_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	ReloadCurveTimeLine.TickTimeline(DeltaTime);
+	ReloadPullDownTimeLine.TickTimeline(DeltaTime);
+	ReloadPullUpTimeline.TickTimeline(DeltaTime);
 	EquipWeaponTimeLine.TickTimeline(DeltaTime);
 
 	ADSTimeline.TickTimeline(DeltaTime);
@@ -194,9 +235,7 @@ void AFPS_Character::EquipSlot1()
 				ADSExit();
 			}
 
-			CurrentWeapon = WeaponSlot_01;
-			WeaponSlot = EWeaponSlot::FirstSlot;
-			EquipWeapon(WeaponSlot_01);
+			EquipWeapon();
 		}
 	}
 }
@@ -211,15 +250,13 @@ void AFPS_Character::EquipSlot2()
 			{
 				ADSExit();
 			}
-
-			CurrentWeapon = WeaponSlot_02;
-			WeaponSlot = EWeaponSlot::SecondSlot;
-			EquipWeapon(WeaponSlot_02);
+			
+			EquipWeapon();
 		}
 	}
 }
 
-void AFPS_Character::EquipWeapon(AWeaponBase* WeaponToEquip)
+void AFPS_Character::EquipWeapon()
 {
 	if (!bIsChangingWeapon)
 	{
@@ -227,21 +264,21 @@ void AFPS_Character::EquipWeapon(AWeaponBase* WeaponToEquip)
 		{
 			bIsReloading = false;
 		}
-
-		bIsChangingWeapon = true;
+		
+		bIsChangingWeapon = true; 
 		bCanFire = false;
 
-		EquipWeaponTimelineFunc();
+		EquipWeaponTimeLine.PlayFromStart();
 	}
 }
 
-void AFPS_Character::ShowWeapon(AWeaponBase* WeaponToEquip) const
+void AFPS_Character::ShowWeapon() const
 {
 	if (CurrentWeapon==WeaponSlot_01)
 	{
 		WeaponSlot_01->SetActorHiddenInGame(false);
 
-		if (WeaponSlot_02!=nullptr)
+		if (WeaponSlot_02)
 		{
 			WeaponSlot_02->SetActorHiddenInGame(true);
 		}
@@ -250,7 +287,7 @@ void AFPS_Character::ShowWeapon(AWeaponBase* WeaponToEquip) const
 	{
 		WeaponSlot_02->SetActorHiddenInGame(false);
 
-		if (WeaponSlot_01!=nullptr)
+		if (WeaponSlot_01)
 		{
 			WeaponSlot_01->SetActorHiddenInGame(true);
 		}
@@ -271,6 +308,8 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 		{
 			SpawnFirstSlot(WeaponToSpawn);
 			bSuccessful = true;
+
+			UpdateWeaponHud.Broadcast();
 			return bSuccessful;
 		}
 		else
@@ -294,8 +333,14 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 
 		if (!bSecondSlotFull)
 		{
+			if (bIsReloading)
+			{
+				bIsReloading=false;
+			}
 			SpawnSecondSlot(WeaponToSpawn);
 			bSuccessful = true;
+
+			UpdateWeaponHud.Broadcast();
 			return bSuccessful;
 		} 
 		else
@@ -324,7 +369,7 @@ void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 	bHasWeapon = true;
 	WeaponSlot = EWeaponSlot::SecondSlot;
 	CurrentWeapon = WeaponSlot_02;
-	ShowWeapon(CurrentWeapon);
+	ShowWeapon();
 	CharacterWeaponSwitch.Broadcast();
 }
 
@@ -337,30 +382,26 @@ void AFPS_Character::SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 	bHasWeapon = true;
 	WeaponSlot = EWeaponSlot::FirstSlot;
 	CurrentWeapon = WeaponSlot_01;
-	ShowWeapon(CurrentWeapon);
+	ShowWeapon();
 	CharacterWeaponSwitch.Broadcast();
-}
-
-void AFPS_Character::EquipWeaponTimelineFunc()
-{
-	FOnTimelineEvent TimeLineFinished;
-	TimeLineFinished.BindUFunction(this, FName("EquipWeaponFinished"));
-	EquipWeaponTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
-
-	FOnTimelineEvent WeaponSwitchTime;
-	WeaponSwitchTime.BindUFunction(this, FName("WeaponSwitch"));
-	EquipWeaponTimeLine.AddEvent(0.25, WeaponSwitchTime);
-
-	FOnTimelineFloat TimeLineProgress;
-	TimeLineProgress.BindUFunction(this, FName("SetAlpha"));
-	EquipWeaponTimeLine.AddInterpFloat(EquipWeaponCurve, TimeLineProgress);
-	EquipWeaponTimeLine.SetLooping(false);
-	EquipWeaponTimeLine.PlayFromStart();
 }
 
 void AFPS_Character::WeaponSwitch()
 {
-	ShowWeapon(CurrentWeapon);
+	if (WeaponSlot==EWeaponSlot::FirstSlot)
+	{
+		WeaponSlot=EWeaponSlot::SecondSlot;
+		CurrentWeapon=WeaponSlot_02;
+	}
+	else
+	{
+		WeaponSlot=EWeaponSlot::FirstSlot;
+		CurrentWeapon=WeaponSlot_01;
+	}
+
+	UpdateWeaponHud.Broadcast();
+	
+	ShowWeapon();
 	bHasWeapon = true;
 	CharacterWeaponSwitch.Broadcast();
 }
@@ -447,7 +488,7 @@ void AFPS_Character::Reload()
 					bIsReloading = true;
 					bCanFire = false;
 
-					ReloadPullDown();
+					ReloadPullDownTimeLine.PlayFromStart();
 				}
 			}
 		}
@@ -457,22 +498,6 @@ void AFPS_Character::Reload()
 void AFPS_Character::Interact()
 {
 	InteractPressed.Broadcast();
-}
-
-void AFPS_Character::ReloadPullDown()
-{
-	if (PullDownCurve)
-	{
-		FOnTimelineEvent TimeLineFinished;
-		TimeLineFinished.BindUFunction(this, FName("OnReloadPullDownFinished"));
-		ReloadCurveTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
-		
-		FOnTimelineFloat TimelineProgress;
-		TimelineProgress.BindUFunction(this, FName("SetAlpha"));
-		ReloadCurveTimeLine.AddInterpFloat(PullDownCurve, TimelineProgress);
-		ReloadCurveTimeLine.SetLooping(false);
-		ReloadCurveTimeLine.PlayFromStart();
-	}
 }
 
 void AFPS_Character::SetAlpha(float value)
@@ -496,17 +521,6 @@ void AFPS_Character::OnReloadPullUpFinished()
 
 void AFPS_Character::ReloadPullUp()
 {
-	if (PullUpCurve)
-	{
-		FOnTimelineEvent TimeLineFinished;
-		TimeLineFinished.BindUFunction(this, FName("OnReloadPullUpFinished"));
-		ReloadCurveTimeLine.SetTimelineFinishedFunc(TimeLineFinished);
-	
-		FOnTimelineFloat TimelineProgress;
-		TimelineProgress.BindUFunction(this, FName("SetAlpha"));
-		ReloadCurveTimeLine.AddInterpFloat(PullUpCurve, TimelineProgress);
-		ReloadCurveTimeLine.SetLooping(false);
-		ReloadCurveTimeLine.PlayFromStart();
-	}
+	ReloadPullUpTimeline.PlayFromStart();
 }
 
