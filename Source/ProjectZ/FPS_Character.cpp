@@ -268,6 +268,8 @@ void AFPS_Character::EquipWeapon()
 		bIsChangingWeapon = true; 
 		bCanFire = false;
 
+		GetWorldTimerManager().ClearTimer(CurrentWeapon->ShootingDelayHandle);
+
 		EquipWeaponTimeLine.PlayFromStart();
 	}
 }
@@ -488,6 +490,8 @@ void AFPS_Character::Reload()
 					bIsReloading = true;
 					bCanFire = false;
 
+					UpdateWeaponHud.Broadcast();
+
 					ReloadPullDownTimeLine.PlayFromStart();
 				}
 			}
@@ -517,6 +521,8 @@ void AFPS_Character::OnReloadPullUpFinished()
 	bIsReloading = false;
 	bCanFire = true;
 	CurrentWeapon->Reload();
+
+	UpdateWeaponHud.Broadcast();
 }
 
 void AFPS_Character::ReloadPullUp()

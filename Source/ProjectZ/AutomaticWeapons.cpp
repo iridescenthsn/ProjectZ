@@ -103,13 +103,16 @@ void AAutomaticWeapons::WeaponFire()
 		{
 			Player->CharacterStopFireWeapon.Broadcast();
 		}
-		
+
+		Player->bCanFire=false;
 		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAutomaticWeapons::AutoFire, AutomaticFireRate, false);
 	}
 }
 
 void AAutomaticWeapons::AutoFire()
 {
+	Player->bCanFire=true;
+	
 	if (bIsWeaponFiring)
 	{
 		WeaponFire();
@@ -130,6 +133,7 @@ void AAutomaticWeapons::StopFire()
 		GetWorldTimerManager().SetTimer(RecoilResetHandle, this, &AAutomaticWeapons::ResetRecoil, ResetRecoilRate, true);
 
 		bIsWeaponFiring = false;
+		Player->bCanFire=true;
 		GetWorldTimerManager().ClearTimer(AutoFireHandle);
 	}
 }

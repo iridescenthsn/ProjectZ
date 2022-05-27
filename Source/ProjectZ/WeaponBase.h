@@ -95,7 +95,7 @@ protected:
 	//The scene root of gun
 	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
 	class USceneComponent* SceneRoot;
-
+	
 	UPROPERTY()
 	TEnumAsByte<ETimelineDirection::Type> RecoilTimelineDirection;
 
@@ -122,8 +122,6 @@ protected:
 	FAmmoData AmmoData;
 	
 	FTimerHandle StopFiringHandle;
-
-	FTimerHandle ShootingDelayHandle;
 
 	FTimerHandle RecoilResetHandle;
 	
@@ -169,6 +167,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float ADSBulletSpread=0;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Property")
+	class UMaterialInstance* UI_Icon;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Animation")
 	float ZOffset;
@@ -296,4 +297,6 @@ public:
 	const FName& GetSocketName() const {return SocketName;}
 
 	EWeaponType GetWeaponType() const {return WeaponType;}
+
+	FTimerHandle ShootingDelayHandle;
 };
