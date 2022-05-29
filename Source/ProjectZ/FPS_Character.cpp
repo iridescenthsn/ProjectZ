@@ -7,7 +7,10 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "Camera/CameraActor.h"
+#include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -27,6 +30,18 @@ AFPS_Character::AFPS_Character()
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
+
+	//Create 3rd person mesh (used for death ragdoll)
+	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh3P"));
+	Mesh3P->SetOnlyOwnerSee(false);
+	Mesh3P->SetupAttachment(GetCapsuleComponent());
+	Mesh3P->bCastDynamicShadow = true;
+	Mesh3P->CastShadow = true;
+	Mesh3P->SetHiddenInGame(true);
+	Mesh3P->SetSimulatePhysics(false);
+
+	DeathCameraTransform= CreateDefaultSubobject<UArrowComponent>(TEXT("Death Camera Transform"));
+	DeathCameraTransform->SetupAttachment(GetCapsuleComponent());
 
 	MaxWalkSpeed=GetCharacterMovement()->MaxWalkSpeed;
 }
@@ -528,5 +543,58 @@ void AFPS_Character::OnReloadPullUpFinished()
 void AFPS_Character::ReloadPullUp()
 {
 	ReloadPullUpTimeline.PlayFromStart();
+}
+
+void AFPS_Character::TakeMeleeDamage(float Damage)
+{
+	if (!bIsDead)
+	{
+		if (CurrentArmor>=Damage)
+		{
+			CurrentArmor-=Damage;
+		}
+		else
+		{
+			Damage-=CurrentArmor;
+			CurrentArmor=0.0f;
+			CurrentHealth-=Damage;
+
+			GetWorldTimerManager().SetTimer(HealthRegenHandle,this,&AFPS_Character::RegenerateHealth,HealthRegenRate,true,HealthRegenDelay);
+
+			FMath::Clamp(CurrentHealth,0.0f,MaxHealth);
+
+			if (CurrentHealth<=0.0f)
+			{
+				bIsDead=true;
+				EventPlayerDeath.Broadcast();
+
+				PlayDeathRagdollAnimation();
+				
+				GetWorldTimerManager().ClearTimer(HealthRegenHandle);
+			}
+		}
+	}
+}
+
+void AFPS_Character::RegenerateHealth()
+{
+	CurrentHealth+=HealthRegenAmount;
+	FMath::Clamp(CurrentHealth,0.0f,MaxHealth);
+
+	if (CurrentHealth>=MaxHealth)
+	{
+		GetWorldTimerManager().ClearTimer(HealthRegenHandle);
+	}
+}
+
+void AFPS_Character::PlayDeathRagdollAnimation()
+{
+	Mesh1P->SetHiddenInGame(true);
+	Mesh3P->SetHiddenInGame(false);
+	Mesh3P->SetSimulatePhysics(true);
+
+	DeathCamera= GetWorld()->SpawnActor<ACameraActor>(DeathCameraTransform->GetComponentLocation(),DeathCameraTransform->GetComponentRotation());
+
+	UGameplayStatics::GetPlayerController(GetWorld(),0)->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
 }
 

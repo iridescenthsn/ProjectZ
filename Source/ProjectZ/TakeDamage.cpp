@@ -14,3 +14,8 @@ void ITakeDamage::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitM
 {
 	return;
 }
+
+void ITakeDamage::TakeMeleeDamage(float Damage)
+{
+	return;
+}

@@ -4,6 +4,7 @@
 
 #include "Components/TimelineComponent.h"	
 #include "CoreMinimal.h"			
+#include "TakeDamage.h"
 #include "GameFramework/Character.h"	
 #include "FPS_Character.generated.h"
 
@@ -23,6 +24,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHudWeaponUpdateDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMainHudUpdateDelegate);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDeath);
+
 class UCurveFloat;
 class AWeaponBase;
 
@@ -35,7 +38,7 @@ enum class EWeaponSlot : uint8
 };
 
 UCLASS()
-class PROJECTZ_API AFPS_Character : public ACharacter
+class PROJECTZ_API AFPS_Character : public ACharacter , public ITakeDamage
 {
 	GENERATED_BODY()
 
@@ -67,6 +70,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnMainHudUpdateDelegate UpdateMainHud;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerDeath EventPlayerDeath;
+
 	bool PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn);
 
 protected:
@@ -85,6 +91,15 @@ protected:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	class USkeletalMeshComponent* Mesh1P;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	class USkeletalMeshComponent* Mesh3P;
+
+	UPROPERTY(VisibleDefaultsOnly, Category ="Camera")
+	class ACameraActor* DeathCamera;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Camera")
+	class UArrowComponent* DeathCameraTransform;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	UCurveFloat* PullDownCurve;
@@ -186,7 +201,44 @@ private:
 	
 	void ReloadPullUp();
 
-public:	
+	UFUNCTION(BlueprintCallable)
+	virtual void TakeMeleeDamage(float Damage) override;
+
+	void RegenerateHealth();
+
+	void PlayDeathRagdollAnimation();
+
+	FTimerHandle HealthRegenHandle;
+	
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	float DeathCameraBlendTime=1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Health")
+	float HealthRegenRate;
+
+	UPROPERTY(EditAnywhere, Category = "Health")
+	float HealthRegenDelay;
+
+	UPROPERTY(EditAnywhere, Category = "Health")
+	float HealthRegenAmount;
+
+	UPROPERTY(EditAnywhere,Category="Health")
+	float CurrentHealth=100.0f;
+	
+	UPROPERTY(EditAnywhere,Category="Health")
+	float MaxHealth=100.0f;
+
+	UPROPERTY(EditAnywhere,Category="Health")
+	float CurrentArmor=100.0f;
+
+	UPROPERTY(EditAnywhere,Category="Health")
+	float MaxArmor=100.0f;
+
+	UPROPERTY(VisibleAnywhere,Category="Health")
+	bool bIsDead=false;
+public:
+	
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -218,4 +270,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Reload();
 
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth() const {return CurrentHealth;}
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const {return MaxHealth;}
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentArmor() const {return CurrentArmor;}
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxArmor() const {return MaxArmor;}
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsDead() const {return bIsDead;}
 };
