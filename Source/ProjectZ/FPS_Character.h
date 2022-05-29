@@ -209,19 +209,23 @@ private:
 	void PlayDeathRagdollAnimation();
 
 	FTimerHandle HealthRegenHandle;
-	
+
+	//The time it takes for the camera to blend to the death camera
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	float DeathCameraBlendTime=1.0f;
-	
+
+	//Rate of Regenerating health
 	UPROPERTY(EditAnywhere, Category = "Health")
 	float HealthRegenRate;
 
+	//The delay after taking damage to start regenerating health
 	UPROPERTY(EditAnywhere, Category = "Health")
 	float HealthRegenDelay;
 
+	//The amount of health to be added every time regenerate health is called
 	UPROPERTY(EditAnywhere, Category = "Health")
 	float HealthRegenAmount;
-
+	
 	UPROPERTY(EditAnywhere,Category="Health")
 	float CurrentHealth=100.0f;
 	

@@ -97,6 +97,10 @@ void AFPS_Character::BeginPlay()
 		ReloadPullUpTimeline.AddInterpFloat(PullUpCurve, PullUpProgress);
 		ReloadPullUpTimeline.SetLooping(false);
 	}
+
+	UGameplayStatics::GetPlayerController(GetWorld(),0)->SetViewTarget(this);
+
+	UpdateWeaponHud.Broadcast();
 }
 
 // Called every frame
@@ -429,6 +433,7 @@ void AFPS_Character::EquipWeaponFinished()
 	bCanFire = true;
 }
 
+//Check if player is near a wall or object
 void AFPS_Character::CheckIsNearWall()
 {
 	if (!CurrentWeapon)
@@ -545,10 +550,13 @@ void AFPS_Character::ReloadPullUp()
 	ReloadPullUpTimeline.PlayFromStart();
 }
 
+//Called when taking melee damage
 void AFPS_Character::TakeMeleeDamage(float Damage)
 {
 	if (!bIsDead)
 	{
+		//If we have enough armor use it to block damage. else block as much
+		//as possible with armor and block the rest with health
 		if (CurrentArmor>=Damage)
 		{
 			CurrentArmor-=Damage;
@@ -559,12 +567,14 @@ void AFPS_Character::TakeMeleeDamage(float Damage)
 			CurrentArmor=0.0f;
 			CurrentHealth-=Damage;
 
+			//call regenerate health function on a loop with a timer
 			GetWorldTimerManager().SetTimer(HealthRegenHandle,this,&AFPS_Character::RegenerateHealth,HealthRegenRate,true,HealthRegenDelay);
 
 			FMath::Clamp(CurrentHealth,0.0f,MaxHealth);
 
 			if (CurrentHealth<=0.0f)
 			{
+				//if player is dead ragdoll the 3rd person mesh
 				bIsDead=true;
 				EventPlayerDeath.Broadcast();
 
@@ -576,6 +586,8 @@ void AFPS_Character::TakeMeleeDamage(float Damage)
 	}
 }
 
+
+//Regenerates health up to max health
 void AFPS_Character::RegenerateHealth()
 {
 	CurrentHealth+=HealthRegenAmount;
@@ -587,14 +599,30 @@ void AFPS_Character::RegenerateHealth()
 	}
 }
 
+
+//Hides first person mesh and shows the 3rd person mesh and simulates ragdoll
+//Also blends out to a different camera so we can see the ragdoll body
 void AFPS_Character::PlayDeathRagdollAnimation()
 {
 	Mesh1P->SetHiddenInGame(true);
 	Mesh3P->SetHiddenInGame(false);
 	Mesh3P->SetSimulatePhysics(true);
 
-	DeathCamera= GetWorld()->SpawnActor<ACameraActor>(DeathCameraTransform->GetComponentLocation(),DeathCameraTransform->GetComponentRotation());
+	const auto OldController = UGameplayStatics::GetPlayerController(GetWorld(),0);
 
-	UGameplayStatics::GetPlayerController(GetWorld(),0)->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
+	DeathCamera= GetWorld()->SpawnActor<ACameraActor>(DeathCameraTransform->GetComponentLocation(),DeathCameraTransform->GetComponentRotation());
+	
+	DeathCamera->GetCameraComponent()->SetConstraintAspectRatio(false);
+
+	UGameplayStatics::GetPlayerController(GetWorld(),0)->UnPossess();
+
+	if (CurrentWeapon)
+	{
+		FAttachmentTransformRules TransformRules= FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+		CurrentWeapon->AttachToComponent(Mesh3P,TransformRules,TEXT("WeaponPoint"));
+	}
+	
+	OldController->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
+
 }
 
