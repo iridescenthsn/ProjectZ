@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AI_Character.h"
+
+#include "Components/CapsuleComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 // Sets default values
@@ -18,7 +20,7 @@ void AAI_Character::BeginPlay()
 	
 }
 
-float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult)
+float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult) const
 {
 	float LocalDamage = Damage;
 	bool bIsCriticalHit;
@@ -29,15 +31,15 @@ float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float Crit
 		LocalDamage *= CriticalHitModifier;
 	}
 	else
-	{
+	{ 
 		bIsCriticalHit = false;
 	}
 
 	LocalDamage = LocalDamage * HitResult.PhysMaterial->DestructibleDamageThresholdScale;
-	return LocalDamage;
+	return LocalDamage; 
 }
 
-float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResult& HitResult, const FVector& ExplosiveLocation)
+float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResult& HitResult, const FVector& ExplosiveLocation) const
 {
 	float LocalDamage = Damage;
 
@@ -63,20 +65,42 @@ bool AAI_Character::UpdateHealth(float Damage)
 	return bLocalIsDead;
 }
 
-void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult)
+void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier,
+	const FHitResult& HitResult)
 {
-	float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
+	const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
 
 	UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
 
 	bIsDead = UpdateHealth(DamageTaken);
+
+	if (bIsDead)
+	{
+		PlayDeathRagDoll();
+	}
+
+	EventTakeDamage.Broadcast();
 }
 
 void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation)
-{
-	float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
+{ 
+	const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 
 	bIsDead = UpdateHealth(DamageTaken);
+
+	if (bIsDead)
+	{
+		PlayDeathRagDoll();
+	}
+
+	EventTakeDamage.Broadcast();
+}
+
+void AAI_Character::PlayDeathRagDoll() const
+{
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 // Called every frame

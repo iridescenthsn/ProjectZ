@@ -8,6 +8,8 @@
 #include "TakeDamage.h"
 #include "AI_Character.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTakeDamage);
+
 UCLASS()
 class PROJECTZ_API AAI_Character : public ACharacter, public ITakeDamage
 {
@@ -16,6 +18,9 @@ class PROJECTZ_API AAI_Character : public ACharacter, public ITakeDamage
 public:
 	// Sets default values for this character's properties
 	AAI_Character();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTakeDamage EventTakeDamage;
 
 protected:
 	// Called when the game starts or when spawned
@@ -33,11 +38,11 @@ protected:
 
 	//Calculates the taken damage
 	UFUNCTION()
-	float SetDamage(float Damage,float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult);
+	float SetDamage(float Damage,float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult) const;
 
 	//Calculates the amount of Damage applied based on distance
 	UFUNCTION()
-	float SetRadialDamage(float Damage, float Radius,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector);
+	float SetRadialDamage(float Damage, float Radius,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector) const;
 
 	//Updates health and returns true if character is dead
 	UFUNCTION()
@@ -50,6 +55,8 @@ protected:
 	//Gets called when radial damage is applied
 	UFUNCTION()
 	void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector) override;
+
+	void PlayDeathRagDoll() const;
 
 public:	
 	// Called every frame
