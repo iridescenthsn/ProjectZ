@@ -36,7 +36,7 @@ protected:
 	void AddDamageAtLocation(const FHitResult& Hit, const FVector& ExplosiveLocation = FVector::ZeroVector);
 
 	UFUNCTION()
-	void SpawnImpactEffectAtLocation(const FHitResult& HitResult,const FVector& ExplosiveLocation = FVector::ZeroVector);
+	void SpawnImpactEffectAtLocation(const FHitResult& HitResult,const FVector& ExplosiveLocation = FVector::ZeroVector) const;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf <class AGrenadeImpactEffect> GrenadeImpactEffectBP;

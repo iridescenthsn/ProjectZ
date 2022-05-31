@@ -79,7 +79,7 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 		PlayDeathRagDoll();
 	}
 
-	EventTakeDamage.Broadcast();
+	EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
 }
 
 void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation)
@@ -93,7 +93,7 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
 		PlayDeathRagDoll();
 	}
 
-	EventTakeDamage.Broadcast();
+	EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
 }
 
 void AAI_Character::PlayDeathRagDoll() const

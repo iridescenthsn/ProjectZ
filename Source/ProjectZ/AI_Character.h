@@ -8,7 +8,7 @@
 #include "TakeDamage.h"
 #include "AI_Character.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTakeDamage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTakeDamage,float,Damage,const FVector&,ImpactPoint);
 
 UCLASS()
 class PROJECTZ_API AAI_Character : public ACharacter, public ITakeDamage
@@ -28,7 +28,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health")
 	float CurrentHealth;
-
+ 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health")
 	float MaxHealth;
 

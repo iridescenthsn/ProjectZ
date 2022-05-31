@@ -6,7 +6,9 @@
 #include "TakeDamage.h"
 #include "Kismet/GameplayStatics.h"
 #include "GrenadeImpactEffect.h"
+#include "PhysicsEngine/RadialForceComponent.h"
 #include "DrawDebugHelpers.h"
+
 
 
 void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
@@ -19,15 +21,13 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 		* if its less
 		* bounce and set timer on first bounce to explode
 		*/
-		float VectorDotProduct = FVector::DotProduct(Hit.ImpactNormal, GetActorForwardVector());
-		float Angle = FMath::RadiansToDegrees(FMath::Acos(VectorDotProduct));
-
-		UE_LOG(LogTemp, Warning, TEXT("Forward vector is %f"), Angle)
+		const float VectorDotProduct = FVector::DotProduct(Hit.ImpactNormal, GetActorForwardVector());
+		const float Angle = FMath::RadiansToDegrees(FMath::Acos(VectorDotProduct));
+		
 
 		if (Angle >= ActivationAngle)
 		{
 			Explode(Hit,GetActorLocation());
-			UE_LOG(LogTemp, Warning, TEXT("Instant"))
 		}
 		else
 		{
@@ -37,7 +37,6 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 			if (!GetWorldTimerManager().IsTimerActive(ExplsionHandle))
 			{
 				ExplosionDelegate.BindUFunction(this, FName(TEXT("Explode")), Hit, GetActorLocation());
-				UE_LOG(LogTemp, Warning, TEXT("timer call"))
 				GetWorldTimerManager().SetTimer(ExplsionHandle, ExplosionDelegate, ExplosionTime, false);
 			}
 		}
@@ -48,7 +47,7 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 void AGrenadeLauncherProjectile::Explode(const FHitResult& Hit, const FVector& ExplosiveLocation)
 {
 	AddDamageAtLocation(Hit,GetActorLocation());
-	SpawnImpactEffectAtLocation(Hit, GetActorLocation());
+	SpawnImpactEffectAtLocation(Hit, GetActorLocation()); 
 	Destroy();
 }
 
@@ -64,14 +63,15 @@ void AGrenadeLauncherProjectile::AddDamageAtLocation(const FHitResult& Hit, cons
 	TArray<AActor*> outActors;
 
 	//make a sphere and find overlapping actors to apply damage to
-	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), ExplosiveLocation, AmmoData.DamageRadius, ObjectTypes, NULL, ignoreActors, outActors);
+	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), ExplosiveLocation, AmmoData.DamageRadius, ObjectTypes, nullptr, ignoreActors, outActors);
 
 	//DrawDebugSphere(GetWorld(), GetActorLocation(), AmmoData.DamageRadius, 12, FColor::Red, true, 10.0f);
-
+	
+	ExplosionForce->FireImpulse();
 
 	//apply damage to actors who have TakeDamage interface
 	for (size_t i = 0; i < outActors.Num(); i++)
-	{
+	{ 
 		AActor* HitActor = outActors[i];
 		if (HitActor)
 		{
@@ -84,9 +84,9 @@ void AGrenadeLauncherProjectile::AddDamageAtLocation(const FHitResult& Hit, cons
 	}
 }
 
-void AGrenadeLauncherProjectile::SpawnImpactEffectAtLocation(const FHitResult& HitResult, const FVector& ExplosiveLocation)
+void AGrenadeLauncherProjectile::SpawnImpactEffectAtLocation(const FHitResult& HitResult, const FVector& ExplosiveLocation) const
 {
-	FTransform SpawnTransForm(FRotator(0, 0, 0), ExplosiveLocation);
+	const FTransform SpawnTransForm(FRotator(0, 0, 0), ExplosiveLocation);
 	AGrenadeImpactEffect* ImpactEffect = Cast<AGrenadeImpactEffect>(UGameplayStatics::BeginDeferredActorSpawnFromClass(GetWorld(), GrenadeImpactEffectBP, SpawnTransForm));
 
 	if (ImpactEffect != nullptr)

@@ -89,16 +89,16 @@ protected:
 	void ADSExit();
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* Mesh1P;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* Mesh3P;
 
-	UPROPERTY(VisibleDefaultsOnly, Category ="Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class ACameraActor* DeathCamera;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class UArrowComponent* DeathCameraTransform;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")

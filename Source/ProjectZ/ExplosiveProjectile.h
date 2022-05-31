@@ -16,6 +16,10 @@ class PROJECTZ_API AExplosiveProjectile : public AProjectile
 
 protected:
 
+	AExplosiveProjectile();
+
 	virtual void AddDamage(const FHitResult& Hit) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Radial force", meta = (AllowPrivateAccess = "true"))
+	class URadialForceComponent* ExplosionForce;
 };

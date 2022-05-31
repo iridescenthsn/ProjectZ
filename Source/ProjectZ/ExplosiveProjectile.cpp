@@ -3,6 +3,14 @@
 #include "ExplosiveProjectile.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "TakeDamage.h"
+#include "PhysicsEngine/RadialForceComponent.h"
+
+
+AExplosiveProjectile::AExplosiveProjectile()
+{
+	ExplosionForce = CreateDefaultSubobject<URadialForceComponent>(FName("ExplsionForce"));
+	ExplosionForce->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+}
 
 void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
 {
@@ -10,16 +18,16 @@ void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 	
-	TArray<AActor*> ignoreActors;
-	ignoreActors.Init(this, 1);
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Init(this, 1);
 
-	TArray<AActor*> outActors;
+	TArray<AActor*> OutActors;
 
-	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Hit.ImpactPoint, AmmoData.DamageRadius, ObjectTypes, NULL, ignoreActors, outActors);
+	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Hit.ImpactPoint, AmmoData.DamageRadius, ObjectTypes, nullptr, IgnoreActors, OutActors);
 
-	for (size_t i = 0; i < outActors.Num(); i++)
+	for (size_t i = 0; i < OutActors.Num(); i++)
 	{
-		AActor* HitActor = outActors[i];
+		AActor* HitActor = OutActors[i];
 		if (HitActor)
 		{
 			ITakeDamage* TakeDamageInterface = Cast<ITakeDamage>(HitActor);
@@ -29,6 +37,6 @@ void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
 			}
 		}
 	}
-
 	
+	ExplosionForce->FireImpulse();
 }
