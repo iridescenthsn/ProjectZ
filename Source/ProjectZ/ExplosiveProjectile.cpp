@@ -3,13 +3,14 @@
 #include "ExplosiveProjectile.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "TakeDamage.h"
+#include "Components/SphereComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
 
 AExplosiveProjectile::AExplosiveProjectile()
 {
 	ExplosionForce = CreateDefaultSubobject<URadialForceComponent>(FName("ExplsionForce"));
-	ExplosionForce->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	ExplosionForce->SetupAttachment(Sphere);
 }
 
 void AExplosiveProjectile::AddDamage(const FHitResult& Hit)
