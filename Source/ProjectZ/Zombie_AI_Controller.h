@@ -13,5 +13,12 @@ UCLASS()
 class PROJECTZ_API AZombie_AI_Controller : public AAIController
 {
 	GENERATED_BODY()
-	
+
+	AZombie_AI_Controller();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AIPerception", meta = (AllowPrivateAccess = "true"))
+	class UAIPerceptionComponent* AIPerception;
+
+	UFUNCTION()
+	void OnAIPerceptionUpdated(const TArray<AActor*>&DetectedActors);
 };

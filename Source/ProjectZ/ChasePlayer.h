@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "FindRandoLocation.generated.h"
+#include "ChasePlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTZ_API UFindRandoLocation : public UBTTaskNode
+class PROJECTZ_API UChasePlayer : public UBTTaskNode
 {
 	GENERATED_BODY()
 

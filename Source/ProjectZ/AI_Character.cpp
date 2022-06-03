@@ -43,7 +43,7 @@ float AAI_Character::SetRadialDamage(float Damage, float Radius, const FHitResul
 {
 	float LocalDamage = Damage;
 
-	float Distance = (GetActorLocation() - ExplosiveLocation).Size();
+	const float Distance = (GetActorLocation() - ExplosiveLocation).Size();
 
 	UE_LOG(LogTemp,Warning,TEXT("Distance is : %f"),Distance)
 
@@ -87,7 +87,7 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
 	const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 
 	bIsDead = UpdateHealth(DamageTaken);
-
+ 
 	if (bIsDead)
 	{
 		PlayDeathRagDoll();
