@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="41bbba16-1c48-4a3a-9957-32bf5a2b9a75" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../../Content/Dynamic/AI/Behaviour/Zombie_Character.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CheckAiState.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CheckAiState.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SetAiState.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SetAiState.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/AI_BehaviourTree.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Dynamic/AI/Behaviour/AI_BehaviourTree.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/AI_BlackBoard.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Dynamic/AI/Behaviour/AI_BlackBoard.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/BTService_BlueprintBase_New.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/SetWalkingSpeed.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/Zombie_AI_Controller_BP.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Dynamic/AI/Behaviour/Zombie_AI_Controller_BP.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Dynamic/AI/Zombie_Character.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Content/Static/StarterContent/Maps/Minimal_Default.umap" beforeDir="false" afterPath="$PROJECT_DIR$/../../Content/Static/StarterContent/Maps/Minimal_Default.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Zombie_AI_Controller.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Zombie_AI_Controller.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Zombie_AI_Controller.h" beforeDir="false" afterPath="$PROJECT_DIR$/Zombie_AI_Controller.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2A7FjddRRgzkwW4jfu5xktC49PM" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="41bbba16-1c48-4a3a-9957-32bf5a2b9a75" name="Changes" comment="" />
+      <created>1654352855177</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1654352855177</updated>
+      <workItem from="1654352861109" duration="5000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+</project>

@@ -30,7 +30,7 @@ protected:
 	float ExplosionTime;
 
 	UFUNCTION()
-	void Explode(const FHitResult& Hit, const FVector& ExplosiveLocation = FVector::ZeroVector);
+	void Explode(const FHitResult& Hit);
 
 	UFUNCTION()
 	void AddDamageAtLocation(const FHitResult& Hit, const FVector& ExplosiveLocation = FVector::ZeroVector);

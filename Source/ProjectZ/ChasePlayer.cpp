@@ -8,7 +8,8 @@
 
 EBTNodeResult::Type UChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	OwnerComp.GetAIOwner()->MoveToLocation(OwnerComp.GetBlackboardComponent()->GetValueAsVector(FName("Target Location")));
-
+	UBlackboardComponent* BlackBoard = OwnerComp.GetBlackboardComponent();
+	UObject* PlayerObject =BlackBoard->GetValueAsObject(FName("Player"));
+	OwnerComp.GetAIOwner()->MoveToActor(Cast<AActor>(PlayerObject));
 	return  EBTNodeResult::Succeeded;
 }

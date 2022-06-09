@@ -27,7 +27,7 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 
 		if (Angle >= ActivationAngle)
 		{
-			Explode(Hit,GetActorLocation());
+			Explode(Hit);
 		}
 		else
 		{
@@ -36,7 +36,7 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 
 			if (!GetWorldTimerManager().IsTimerActive(ExplsionHandle))
 			{
-				ExplosionDelegate.BindUFunction(this, FName(TEXT("Explode")), Hit, GetActorLocation());
+				ExplosionDelegate.BindUFunction(this, FName(TEXT("Explode")), Hit);
 				GetWorldTimerManager().SetTimer(ExplsionHandle, ExplosionDelegate, ExplosionTime, false);
 			}
 		}
@@ -44,7 +44,7 @@ void AGrenadeLauncherProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor
 }
 
 
-void AGrenadeLauncherProjectile::Explode(const FHitResult& Hit, const FVector& ExplosiveLocation)
+void AGrenadeLauncherProjectile::Explode(const FHitResult& Hit)
 {
 	AddDamageAtLocation(Hit,GetActorLocation());
 	SpawnImpactEffectAtLocation(Hit, GetActorLocation()); 
