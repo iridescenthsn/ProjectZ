@@ -90,7 +90,7 @@ void AAutomaticWeapons::WeaponFire()
 
 	Super::WeaponFire();
 
-	if (Player->bCanFire)
+	if (Player->bCanFire&&bIsReadyToFire)
 	{
 		bIsWeaponFiring = true;
 
@@ -104,15 +104,14 @@ void AAutomaticWeapons::WeaponFire()
 			Player->CharacterStopFireWeapon.Broadcast();
 		}
 
-		Player->bCanFire=false;
-		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAutomaticWeapons::AutoFire, AutomaticFireRate, false);
+		bIsReadyToFire=false;
+		GetWorldTimerManager().SetTimer(AutoFireHandle, this, &AAutomaticWeapons::AutoFire, FireRate, false);
 	}
 }
 
 void AAutomaticWeapons::AutoFire()
 {
-	Player->bCanFire=true;
-	
+	bIsReadyToFire=true;
 	if (bIsWeaponFiring)
 	{
 		WeaponFire();
@@ -134,7 +133,7 @@ void AAutomaticWeapons::StopFire()
 
 		bIsWeaponFiring = false;
 		Player->bCanFire=true;
-		GetWorldTimerManager().ClearTimer(AutoFireHandle);
+		//GetWorldTimerManager().ClearTimer(AutoFireHandle);
 	}
 }
 

@@ -185,7 +185,7 @@ void AFPS_Character::LookUp(float value)
 
 void AFPS_Character::Jump()
 {
-	if (!(AFPS_Character::GetCharacterMovement()->IsFalling()))
+	if (!(GetCharacterMovement()->IsFalling()))
 	{
 		LaunchCharacter(FVector(0, 0, JumpHeight), false, true);
 	}
@@ -284,11 +284,18 @@ void AFPS_Character::EquipWeapon()
 			bIsReloading = false;
 		}
 		
+		GetWorldTimerManager().ClearTimer(CurrentWeapon->AutoFireHandle);
+		GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
+		
+		ReloadPullUpTimeline.Stop();
+		ReloadPullUpTimeline.SetPlaybackPosition(0.0f,true);
+
+		ReloadPullDownTimeLine.Stop();
+		ReloadPullDownTimeLine.SetPlaybackPosition(0.0f,true);
+		
 		bIsChangingWeapon = true; 
 		bCanFire = false;
-
-		GetWorldTimerManager().ClearTimer(CurrentWeapon->ShootingDelayHandle);
-
+		
 		EquipWeaponTimeLine.PlayFromStart();
 	}
 }
@@ -424,6 +431,7 @@ void AFPS_Character::WeaponSwitch()
 	
 	ShowWeapon();
 	bHasWeapon = true;
+	CurrentWeapon->SetIsReadyToFire(true);
 	CharacterWeaponSwitch.Broadcast();
 }
 
@@ -506,7 +514,10 @@ void AFPS_Character::Reload()
 					{
 						ADSExit();
 					}
+					
+					GetWorldTimerManager().ClearTimer(CurrentWeapon->AutoFireHandle);
 
+					CurrentWeapon->SetIsWeaponFiring(false);
 					bIsReloading = true;
 					bCanFire = false;
 
@@ -531,8 +542,7 @@ void AFPS_Character::SetAlpha(float value)
 
 void AFPS_Character::OnReloadPullDownFinished()
 {
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AFPS_Character::ReloadPullUp,
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &AFPS_Character::ReloadPullUp,
 		CurrentWeapon->GetReloadTime(), false);
 }
 
@@ -540,6 +550,7 @@ void AFPS_Character::OnReloadPullUpFinished()
 {
 	bIsReloading = false;
 	bCanFire = true;
+	CurrentWeapon->SetIsReadyToFire(true);
 	CurrentWeapon->Reload();
 
 	UpdateWeaponHud.Broadcast();

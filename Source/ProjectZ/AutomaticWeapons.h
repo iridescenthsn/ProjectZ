@@ -24,17 +24,8 @@ public:
 
 private:
 
-	FTimerHandle AutoFireHandle;
-
 	virtual void WeaponFire() override;
 	virtual void StopFire() override;
 
 	void AutoFire();
-
-protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float AutomaticFireRate = 0.1;
-
-	
 };

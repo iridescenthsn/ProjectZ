@@ -126,6 +126,7 @@ protected:
 	FTimerHandle RecoilResetHandle;
 	
 	FTimerHandle RecoilReverseHandle;
+	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
 	float AnimRecoil;
@@ -146,12 +147,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Property")
 	float ReloadTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
-	float DelayBetweenShots=0.1f;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	bool bIsWeaponAuto;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
+	float FireRate = 0.1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Property")
 	float ADSFov=85.0f;
@@ -192,8 +193,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	class UAnimationAsset* FireAnimation;
 
-	UPROPERTY(EditAnywhere)
-	bool bIsWeaponFiring;
+	UPROPERTY(VisibleAnywhere)
+	bool bIsWeaponFiring=false;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bIsReadyToFire=true;
 
 	//Shoots based on the weapon type
 	virtual void Shoot();
@@ -293,10 +297,20 @@ public:
 	void SetRecoilAllAddedPitch(const float AllAddedPitch) {RecoilAllAddedPitch = AllAddedPitch;}
 
 	void SetRecoilAllAddedYaw(const float AllAddedYaw) {RecoilAllAddedYaw = AllAddedYaw;}
+
+	bool GetIsWeaponFiring() const {return bIsWeaponFiring;}
+
+	void SetIsWeaponFiring(const bool IsWeaponFiring) {this->bIsWeaponFiring = IsWeaponFiring;}
+
+	bool GetIsReadyToFire() const{ return bIsReadyToFire;}
+
+	void SetIsReadyToFire(const bool IsReadyToFire) {this->bIsReadyToFire = IsReadyToFire;}
 	
 	const FName& GetSocketName() const {return SocketName;}
 
 	EWeaponType GetWeaponType() const {return WeaponType;}
 
 	FTimerHandle ShootingDelayHandle;
+
+	FTimerHandle AutoFireHandle;
 };

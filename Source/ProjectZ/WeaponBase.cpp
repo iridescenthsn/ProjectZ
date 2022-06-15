@@ -255,7 +255,7 @@ void AWeaponBase::CalculateReverseRecoil()
 //Firing method on weapon reduces 1 ammo everytime its called
 void AWeaponBase::WeaponFire()
 {
-	if (Player->bCanFire)
+	if (Player->bCanFire && bIsReadyToFire)
 	{
 		if (MagStatus().bHasAmmo)
 		{
@@ -275,8 +275,8 @@ void AWeaponBase::WeaponFire()
 			{
 				Player->CharacterFireWeapon.Broadcast(WeaponType);
 				
-				Player->bCanFire = false;
-				GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, DelayBetweenShots, false);
+				bIsReadyToFire = false;
+				GetWorldTimerManager().SetTimer(ShootingDelayHandle, this, &AWeaponBase::SetWeaponState, FireRate, false);
 
 				GetWorldTimerManager().SetTimer(StopFiringHandle, this, &AWeaponBase::CharacterStopFireWeapon, StopFireRate, false);
 			}
@@ -307,12 +307,11 @@ void AWeaponBase::WeaponFire()
 
 void AWeaponBase::Shoot()
 {
-
 }
 
 void AWeaponBase::SetWeaponState()
 {
-	Player->bCanFire = true;
+	bIsReadyToFire=true;
 	GetWorldTimerManager().ClearTimer(ShootingDelayHandle);
 }
 

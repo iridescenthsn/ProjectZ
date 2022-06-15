@@ -209,6 +209,8 @@ private:
 	void PlayDeathRagdollAnimation();
 
 	FTimerHandle HealthRegenHandle;
+	
+	FTimerHandle ReloadTimerHandle;
 
 	//The time it takes for the camera to blend to the death camera
 	UPROPERTY(EditAnywhere, Category = "Camera")
