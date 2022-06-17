@@ -619,19 +619,22 @@ void AFPS_Character::PlayDeathRagdollAnimation()
 	Mesh3P->SetHiddenInGame(false);
 	Mesh3P->SetSimulatePhysics(true);
 
-	const auto OldController = UGameplayStatics::GetPlayerController(GetWorld(),0);
+	const auto& OldController = UGameplayStatics::GetPlayerController(GetWorld(),0);
 
 	DeathCamera= GetWorld()->SpawnActor<ACameraActor>(DeathCameraTransform->GetComponentLocation(),DeathCameraTransform->GetComponentRotation());
 	
 	DeathCamera->GetCameraComponent()->SetConstraintAspectRatio(false);
 
 	UGameplayStatics::GetPlayerController(GetWorld(),0)->UnPossess();
-
+	
 	if (CurrentWeapon)
 	{
-		FAttachmentTransformRules TransformRules= FAttachmentTransformRules::SnapToTargetNotIncludingScale;
+		const FAttachmentTransformRules TransformRules= FAttachmentTransformRules::SnapToTargetNotIncludingScale;
 		CurrentWeapon->AttachToComponent(Mesh3P,TransformRules,TEXT("WeaponPoint"));
 	}
+
+	const FAttachmentTransformRules TransformRules = FAttachmentTransformRules::KeepWorldTransform;
+	DeathCamera->AttachToComponent(Mesh3P,TransformRules);
 	
 	OldController->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
 

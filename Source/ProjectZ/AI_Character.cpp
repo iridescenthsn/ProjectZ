@@ -2,7 +2,10 @@
 
 #include "AI_Character.h"
 
+#include "Zombie_AI_Controller.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 // Sets default values
@@ -17,6 +20,7 @@ AAI_Character::AAI_Character()
 void AAI_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
 	
 }
 
@@ -68,39 +72,92 @@ bool AAI_Character::UpdateHealth(float Damage)
 void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModifier,
 	const FHitResult& HitResult)
 {
-	const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
-
-	UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
-
-	bIsDead = UpdateHealth(DamageTaken);
-
-	if (bIsDead)
+	if (!bIsDead)
 	{
-		PlayDeathRagDoll();
-	}
+		const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
 
-	EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
+		UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
+
+		bIsDead = UpdateHealth(DamageTaken);
+
+		if (bIsDead)
+		{
+			PlayDeathRagDoll();
+		}
+
+		EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
+	}
 }
 
 void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation)
-{ 
-	const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
-
-	bIsDead = UpdateHealth(DamageTaken);
- 
-	if (bIsDead)
+{
+	if (!bIsDead)
 	{
-		PlayDeathRagDoll();
-	}
+		const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 
-	EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
+		bIsDead = UpdateHealth(DamageTaken);
+ 
+		if (bIsDead)
+		{
+			PlayDeathRagDoll();
+		}
+
+		EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
+	}
+}
+
+void AAI_Character::Melee()
+{
+	if (AttackMontage)
+	{
+		//Play attack animation
+		UE_LOG(LogTemp,Warning,TEXT("AimMontagePlay"))
+		PlayAnimMontage(AttackMontage);
+
+		//Add Damage after given time
+		GetWorldTimerManager().SetTimer(AddDamageTimer,this,&AAI_Character::AddMeleeDamage,1.26,false);
+	}
+}
+
+void AAI_Character::AddMeleeDamage()
+{
+	//Object types to trace by
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	//Ignore self
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Init(this, 1);
+
+	//Start loc and end loc (from Ai to the distance specified)
+	FVector StartLoc= GetActorLocation();
+	FVector EndLoc= StartLoc + GetActorForwardVector()*SphereDistanceMultiplier;
+
+	FHitResult Hit;
+	
+	//Sphere trace to apply damage if player is hit
+	const bool bHit =UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),StartLoc,EndLoc,SphereRadius,ObjectTypes,false,IgnoreActors,EDrawDebugTrace::ForDuration,Hit,true);
+
+	//Apply damage if the actor has a take damage interface
+	if (bHit)
+	{
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor)
+		{
+			ITakeDamage* TakeDamageInterface = Cast<ITakeDamage>(HitActor);
+			if (TakeDamageInterface)
+			{
+				TakeDamageInterface->TakeMeleeDamage(AttackDamage);
+			}
+		}
+	}
 }
 
 void AAI_Character::PlayDeathRagDoll() const
 {
-	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Cast<AZombie_AI_Controller>(GetController())->GetBlackboardComponent()->SetValueAsBool(FName("IsDead"),true);
 }
 
 // Called every frame

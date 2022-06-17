@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MeleeAttack.h"
 #include "GameFramework/Character.h"
 #include "WeaponBase.h"	
 #include "TakeDamage.h"
@@ -11,7 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTakeDamage,float,Damage,const FVector&,ImpactPoint);
 
 UCLASS()
-class PROJECTZ_API AAI_Character : public ACharacter, public ITakeDamage
+class PROJECTZ_API AAI_Character : public ACharacter, public ITakeDamage,public IMeleeAttack
 {
 	GENERATED_BODY()
 
@@ -35,6 +36,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IsDead")
 	bool bIsDead;
 
+	/** Distance of which the sphere trace will go */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	float SphereDistanceMultiplier=50.0f;
+	
+	/** Sphere radius of damaging sphere trace */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	float SphereRadius=25.0f;
+
+	/** Damage the Ai applies on attack */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+	float AttackDamage=35.0f;
 
 	//Calculates the taken damage
 	UFUNCTION()
@@ -56,7 +68,18 @@ protected:
 	UFUNCTION()
 	void TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHitModifier,const FHitResult& HitResult, const FVector& ExplosiveLocation = FVector::ZeroVector) override;
 
+	UFUNCTION()
+	virtual void Melee() override;
+
+	UFUNCTION()
+	void AddMeleeDamage();
+
 	void PlayDeathRagDoll() const;
+
+	UPROPERTY(EditDefaultsOnly,Category="Animation")
+	UAnimMontage* AttackMontage;
+
+	FTimerHandle AddDamageTimer;
 
 public:	
 	// Called every frame

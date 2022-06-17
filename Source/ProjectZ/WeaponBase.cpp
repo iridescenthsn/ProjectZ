@@ -9,6 +9,7 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TakeDamage.h"
+#include "Perception/AISense_Hearing.h"
 
 
 // Sets default values
@@ -264,7 +265,7 @@ void AWeaponBase::WeaponFire()
 			CurrentAmmoInMag--;
 
 			Shoot();
-
+			UAISense_Hearing::ReportNoiseEvent(GetWorld(),GetActorLocation(),1,this,0,FName("AI_Noise"));
 			AddRecoil();
 
 			NumberOfShot++;

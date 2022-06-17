@@ -45,7 +45,6 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category="AiWalkSpeed")
 	float InvestigatingSpeed;
-
 public:
 	
 	UFUNCTION(BlueprintCallable)

@@ -9,7 +9,7 @@
 
 AZombie_AI_Controller::AZombie_AI_Controller()
 {
-	AIPerception=CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp"));
+	AIPerception=CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp")); 
 
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AZombie_AI_Controller::OnAIPerceptionUpdated);
 }
@@ -18,13 +18,17 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 {
 	for (const auto& Actor:DetectedActors)
 	{
+		//Get perception of each detected actor
 		FActorPerceptionBlueprintInfo Info;
 		AIPerception->GetActorsPerception(Actor,Info);
-		const bool bWasSuccessfullySensed = Info.LastSensedStimuli[0].WasSuccessfullySensed();
-		
-		BlackBoard->SetValueAsBool((FName("Can see player")),bWasSuccessfullySensed);
-		
-		if (bWasSuccessfullySensed)
+
+		//Check if we seen player or lost sight
+		const bool WasSuccessfullySeen = Info.LastSensedStimuli[0].WasSuccessfullySensed();
+		BlackBoard->SetValueAsBool((FName("Can see player")),WasSuccessfullySeen);
+
+		//Set the player key and chase if we see player
+		//Otherwise Investigate
+		if (WasSuccessfullySeen)
 		{
 			ChangeAiState(EAiState::Chasing);
 			BlackBoard->SetValueAsObject(FName("Player"),Actor);
@@ -34,6 +38,16 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 			ChangeAiState(EAiState::Investigating);
 			BlackBoard->ClearValue(FName("Player"));
 			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[0].StimulusLocation);
+		}
+
+		//Investigate sound location
+		const bool WasSuccessFullyHeard = Info.LastSensedStimuli[1].WasSuccessfullySensed();
+		const FName& Tag = Info.LastSensedStimuli[1].Tag;
+		if (WasSuccessFullyHeard && Tag.IsEqual(FName("AI_Noise")))
+		{
+			UE_LOG(LogTemp,Warning,TEXT("Heard it"))
+			ChangeAiState(EAiState::Investigating);
+			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[1].StimulusLocation);
 		}
 	}
 }
