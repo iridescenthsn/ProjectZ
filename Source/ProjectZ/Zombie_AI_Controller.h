@@ -11,7 +11,7 @@ enum class EAiState : uint8
 {
 	Patrolling,
 	Chasing,
-	Investigating
+	Investigating,
 };
 /**
  * 

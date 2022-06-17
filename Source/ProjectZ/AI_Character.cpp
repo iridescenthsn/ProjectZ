@@ -5,7 +5,9 @@
 #include "Zombie_AI_Controller.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Perception/AISense_Damage.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 // Sets default values
@@ -74,6 +76,14 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 {
 	if (!bIsDead)
 	{
+		UAISense_Damage::ReportDamageEvent
+		    (
+			GetWorld(),
+			this,
+			UGameplayStatics::GetPlayerPawn(GetWorld(),0),0,HitResult.Location,
+			GetActorLocation()
+			); 
+		
 		const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
 
 		UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
@@ -93,6 +103,14 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
 {
 	if (!bIsDead)
 	{
+		UAISense_Damage::ReportDamageEvent
+			(
+			GetWorld(),
+			this,
+			UGameplayStatics::GetPlayerPawn(GetWorld(),0),0,HitResult.Location,
+			GetActorLocation()
+			);
+		
 		const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 
 		bIsDead = UpdateHealth(DamageTaken);

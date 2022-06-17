@@ -18,6 +18,9 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 {
 	for (const auto& Actor:DetectedActors)
 	{
+		//reset this value every time
+		BlackBoard->SetValueAsBool(FName("TookDamage"),false);
+		
 		//Get perception of each detected actor
 		FActorPerceptionBlueprintInfo Info;
 		AIPerception->GetActorsPerception(Actor,Info);
@@ -45,9 +48,18 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 		const FName& Tag = Info.LastSensedStimuli[1].Tag;
 		if (WasSuccessFullyHeard && Tag.IsEqual(FName("AI_Noise")))
 		{
-			UE_LOG(LogTemp,Warning,TEXT("Heard it"))
+			ChangeAiState(EAiState::Patrolling);
 			ChangeAiState(EAiState::Investigating);
 			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[1].StimulusLocation);
+		}
+		
+		//Investigate around Own location
+		const bool WasSuccessfullyDamaged=Info.LastSensedStimuli[2].WasSuccessfullySensed();
+		if (WasSuccessfullyDamaged)
+		{
+			ChangeAiState(EAiState::Patrolling);
+			ChangeAiState(EAiState::Investigating);
+			BlackBoard->SetValueAsBool(FName("TookDamage"),true);
 		}
 	}
 }
