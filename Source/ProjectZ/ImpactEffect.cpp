@@ -103,7 +103,10 @@ void AImpactEffect::BeginPlay()
 			EAttachLocation::KeepWorldPosition,
 			0.0f
 		);
-		Decal->SetFadeScreenSize(DecalFadeScreenSize);
+		if (Decal)
+		{
+			Decal->SetFadeScreenSize(DecalFadeScreenSize);
+		}
 		break;
 
 	case SurfaceType1:
@@ -118,7 +121,10 @@ void AImpactEffect::BeginPlay()
 			EAttachLocation::KeepWorldPosition,
 			0.0f
 		);
-		Decal->SetFadeScreenSize(DecalFadeScreenSize);
+		if (Decal)
+		{
+			Decal->SetFadeScreenSize(DecalFadeScreenSize);
+		}
 		break;
 
 	case SurfaceType2:

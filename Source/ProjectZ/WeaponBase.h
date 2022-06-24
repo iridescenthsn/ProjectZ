@@ -271,11 +271,13 @@ public:
 
 	float PlayerPitchInput=0.0f;
 	float PlayerYawInput = 0.0f;
+	FVector RootToAds;
 
 	FMagStatus MagStatus() const;
 
 	//Geters and setters
-	
+
+	UFUNCTION(BlueprintCallable)
 	USkeletalMeshComponent* GetGunMesh() const { return GunMesh; }
 
 	float GetReloadTime() const {return ReloadTime;}

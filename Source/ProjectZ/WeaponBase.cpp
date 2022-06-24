@@ -39,6 +39,7 @@ void AWeaponBase::BeginPlay()
 	Player = Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	Camera = Player->FirstPersonCameraComponent;
 
+
 	//Timeline float for recoil pitch binding
 	if (RecoilPitchCurve)
 	{

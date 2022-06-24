@@ -164,6 +164,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ADS")
 	float TargetFOV=90.0f;
 
+	UPROPERTY(EditAnywhere, Category = "WeaponSway")
+	float MaxSwayDegree=2.5f;
+
+	UPROPERTY(EditAnywhere, Category = "WeaponSway")
+	float SwaySpeed=2.5f;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	AWeaponBase* CurrentWeapon;
 
@@ -198,6 +204,7 @@ private:
 	void EquipWeapon();
 	void ShowWeapon() const;
 	void Interact();
+	FTransform CalculateAdsTransform() const;
 	
 	void ReloadPullUp();
 
@@ -207,6 +214,8 @@ private:
 	void RegenerateHealth();
 
 	void PlayDeathRagdollAnimation();
+
+	void WeaponSway(float DeltaTime) const;
 
 	FTimerHandle HealthRegenHandle;
 	
@@ -242,6 +251,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere,Category="Health")
 	bool bIsDead=false;
+
+	UPROPERTY(VisibleAnywhere,Category="ADS")
+	FTransform DefaultArmsTransform;
+	
 public:
 	
 

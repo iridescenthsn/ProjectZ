@@ -51,6 +51,8 @@ void AFPS_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+	DefaultArmsTransform = Mesh1P->GetRelativeTransform();
+
 	if (ADSCurve)
 	{
 		FOnTimelineFloat ADSTimelineFloat;
@@ -112,6 +114,8 @@ void AFPS_Character::Tick(float DeltaTime)
 	EquipWeaponTimeLine.TickTimeline(DeltaTime);
 
 	ADSTimeline.TickTimeline(DeltaTime);
+
+	WeaponSway(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -239,7 +243,10 @@ void AFPS_Character::ADSExit()
 void AFPS_Character::SetFOV(float value) const
 {
 	const float FOV = FMath::Lerp(DefaultFOV, CurrentWeapon->GetAdsFov(), value);
+	const FTransform& Transform = UKismetMathLibrary::TLerp(IsADSing? Mesh1P->GetRelativeTransform() : DefaultArmsTransform ,
+		CalculateAdsTransform(),value);
 
+	Mesh1P->SetRelativeTransform(Transform);
 	FirstPersonCameraComponent->SetFieldOfView(FOV);
 }
 
@@ -535,6 +542,13 @@ void AFPS_Character::Interact()
 	InteractPressed.Broadcast();
 }
 
+FTransform AFPS_Character::CalculateAdsTransform() const
+{
+	const FTransform& Transform =UKismetMathLibrary::MakeRelativeTransform(Mesh1P->GetComponentTransform(),
+		CurrentWeapon->GetGunMesh()->GetSocketTransform(FName("ADS_Socket")));
+	return Transform;
+}
+
 void AFPS_Character::SetAlpha(float value)
 {
 	WeaponPullAlpha = value;
@@ -638,5 +652,52 @@ void AFPS_Character::PlayDeathRagdollAnimation()
 	
 	OldController->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
 
+}
+
+void AFPS_Character::WeaponSway(float DeltaTime) const
+{
+	if (!CurrentWeapon)
+	{
+		return;
+	}
+	if (IsADSing)
+	{
+		//Calculate fina; rotation based on input
+		FRotator FinalRot;
+		FinalRot.Yaw=GetInputAxisValue(FName("Turn"))*MaxSwayDegree;
+		FinalRot.Roll=GetInputAxisValue(FName("LookUp"))*MaxSwayDegree;
+		FinalRot.Pitch=GetInputAxisValue(FName("Turn"))*MaxSwayDegree;
+
+		//interp to the final rotation
+		FRotator DeltaRot=FMath::RInterpTo(CurrentWeapon->GetGunMesh()->GetRelativeRotation(),FinalRot,DeltaTime,SwaySpeed);
+
+		//clamp it to max degrees
+		DeltaRot.Yaw=FMath::Clamp(DeltaRot.Yaw,-MaxSwayDegree,MaxSwayDegree);
+		DeltaRot.Pitch=FMath::Clamp(DeltaRot.Pitch,-MaxSwayDegree,MaxSwayDegree);
+		DeltaRot.Roll=FMath::Clamp(DeltaRot.Roll,-MaxSwayDegree,MaxSwayDegree);
+
+		//Set the relative rotation
+		CurrentWeapon->GetGunMesh()->SetRelativeRotation(DeltaRot);
+	}
+	else
+	{
+		//Calculate fina; rotation based on input
+		FRotator FinalRot;
+		FinalRot.Yaw=GetInputAxisValue(FName("Turn"))*MaxSwayDegree;
+		FinalRot.Roll=GetInputAxisValue(FName("LookUp"))*MaxSwayDegree;
+		FinalRot.Pitch=GetInputAxisValue(FName("Turn"))*MaxSwayDegree;
+
+		//interp to the final rotation
+		FRotator DeltaRot=FMath::RInterpTo(Mesh1P->GetRelativeRotation(),FinalRot,DeltaTime,SwaySpeed);
+
+		//clamp it to max degrees
+		DeltaRot.Yaw=FMath::Clamp(DeltaRot.Yaw,-MaxSwayDegree,MaxSwayDegree);
+		DeltaRot.Pitch=FMath::Clamp(DeltaRot.Pitch,-MaxSwayDegree,MaxSwayDegree);
+		DeltaRot.Roll=FMath::Clamp(DeltaRot.Roll,-MaxSwayDegree,MaxSwayDegree);
+		DeltaRot.Yaw-=90.0f;
+
+		//Set the relative rotation
+		Mesh1P->SetRelativeRotation(DeltaRot);
+	}
 }
 
