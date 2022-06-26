@@ -266,7 +266,7 @@ void AWeaponBase::WeaponFire()
 			CurrentAmmoInMag--;
 
 			Shoot();
-			UAISense_Hearing::ReportNoiseEvent(GetWorld(),GetActorLocation(),1,this,0,FName("AI_Noise"));
+			UAISense_Hearing::ReportNoiseEvent(GetWorld(),GetActorLocation(),1,Player,0,FName("AI_Noise"));
 			AddRecoil();
 
 			NumberOfShot++;

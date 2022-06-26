@@ -74,7 +74,7 @@ protected:
 	UFUNCTION()
 	void AddMeleeDamage();
 
-	void PlayDeathRagDoll() const;
+	void Die();
 
 	UPROPERTY(EditDefaultsOnly,Category="Animation")
 	UAnimMontage* AttackMontage;

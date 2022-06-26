@@ -30,11 +30,11 @@ class PROJECTZ_API AZombie_AI_Controller : public AAIController
 	void OnAIPerceptionUpdated(const TArray<AActor*>&DetectedActors);
 
 	virtual void BeginPlay() override;
-	
-	class AAI_Character* PawnRef;
 
 	UBlackboardComponent* BlackBoard;
 
+	class AAI_Character* PawnRef;
+	
 protected:
 
 	UPROPERTY(EditAnywhere,Category="AiWalkSpeed")
@@ -49,4 +49,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void ChangeAiState(EAiState AiState);
+
+	void SetPawnRef(AAI_Character* const PawnToSet) {PawnRef = PawnToSet;}
+	
 };

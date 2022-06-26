@@ -2,6 +2,7 @@
 
 #include "AI_Character.h"
 
+#include "ProjectZGameModeBase.h"
 #include "Zombie_AI_Controller.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -92,7 +93,7 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 
 		if (bIsDead)
 		{
-			PlayDeathRagDoll();
+			Die();
 		}
 
 		EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
@@ -117,7 +118,7 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
  
 		if (bIsDead)
 		{
-			PlayDeathRagDoll();
+			Die();
 		}
 
 		EventTakeDamage.Broadcast(DamageTaken,HitResult.ImpactPoint);
@@ -129,7 +130,6 @@ void AAI_Character::Melee()
 	if (AttackMontage)
 	{
 		//Play attack animation
-		UE_LOG(LogTemp,Warning,TEXT("AimMontagePlay"))
 		PlayAnimMontage(AttackMontage);
 
 		//Add Damage after given time
@@ -154,7 +154,7 @@ void AAI_Character::AddMeleeDamage()
 	FHitResult Hit;
 	
 	//Sphere trace to apply damage if player is hit
-	const bool bHit =UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),StartLoc,EndLoc,SphereRadius,ObjectTypes,false,IgnoreActors,EDrawDebugTrace::ForDuration,Hit,true);
+	const bool bHit =UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),StartLoc,EndLoc,SphereRadius,ObjectTypes,false,IgnoreActors,EDrawDebugTrace::None,Hit,true);
 
 	//Apply damage if the actor has a take damage interface
 	if (bHit)
@@ -171,11 +171,23 @@ void AAI_Character::AddMeleeDamage()
 	}
 }
 
-void AAI_Character::PlayDeathRagDoll() const
+void AAI_Character::Die() 
 {
+	//Reduce the number of alive zombies
+	AProjectZGameModeBase* GameModeRef =Cast<AProjectZGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	GameModeRef->SetZombiesAlive(GameModeRef->GetZombiesAlive()-1);
+	GameModeRef->IsRoundOver();
+
+	//Simulate RagDoll physics
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Cast<AZombie_AI_Controller>(GetController())->GetBlackboardComponent()->SetValueAsBool(FName("IsDead"),true);
+
+	FTimerHandle DestroyHandle;
+	GetWorldTimerManager().SetTimer(DestroyHandle,[&]
+	{
+		Destroy();
+	},3,false);
 }
 
 // Called every frame

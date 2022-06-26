@@ -5,6 +5,7 @@
 #include "AI_Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
 
 AZombie_AI_Controller::AZombie_AI_Controller()
@@ -18,6 +19,11 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 {
 	for (const auto& Actor:DetectedActors)
 	{
+		if (!Actor->ActorHasTag(FName("Player")))
+		{
+			return;
+		}
+		
 		//reset this value every time
 		BlackBoard->SetValueAsBool(FName("TookDamage"),false);
 		
@@ -42,16 +48,6 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 			BlackBoard->ClearValue(FName("Player"));
 			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[0].StimulusLocation);
 		}
-
-		//Investigate sound location
-		const bool WasSuccessFullyHeard = Info.LastSensedStimuli[1].WasSuccessfullySensed();
-		const FName& Tag = Info.LastSensedStimuli[1].Tag;
-		if (WasSuccessFullyHeard && Tag.IsEqual(FName("AI_Noise")))
-		{
-			ChangeAiState(EAiState::Patrolling);
-			ChangeAiState(EAiState::Investigating);
-			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[1].StimulusLocation);
-		}
 		
 		//Investigate around Own location
 		const bool WasSuccessfullyDamaged=Info.LastSensedStimuli[2].WasSuccessfullySensed();
@@ -61,6 +57,18 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 			ChangeAiState(EAiState::Investigating);
 			BlackBoard->SetValueAsBool(FName("TookDamage"),true);
 		}
+
+		//Investigate sound location
+		const bool WasSuccessFullyHeard = Info.LastSensedStimuli[1].WasSuccessfullySensed();
+		const FName& Tag = Info.LastSensedStimuli[1].Tag;
+		if (WasSuccessFullyHeard && Tag.IsEqual(FName("AI_Noise")))
+		{
+			ChangeAiState(EAiState::Patrolling);
+			ChangeAiState(EAiState::Investigating);
+			
+			BlackBoard->SetValueAsBool(FName("TookDamage"),false);
+			BlackBoard->SetValueAsVector(FName("Target Location"),Info.LastSensedStimuli[1].StimulusLocation);
+		}
 	}
 }
 
@@ -69,15 +77,18 @@ void AZombie_AI_Controller::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PawnRef=Cast<AAI_Character>(GetPawn());
-
+	if (!PawnRef)
+	{
+		PawnRef=Cast<AAI_Character>(GetPawn());
+	}
+	
 	BlackBoard= GetBlackboardComponent();
 }
 
 void AZombie_AI_Controller::ChangeAiState(EAiState AiState)
 {
 	BlackBoard->SetValueAsEnum(FName("AIState"),static_cast<uint8>(AiState));
-
+	
 	switch (AiState)
 	{
 	case EAiState::Chasing:
