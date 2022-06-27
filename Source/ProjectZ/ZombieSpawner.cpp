@@ -14,8 +14,8 @@ AZombieSpawner::AZombieSpawner()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	Arrow=CreateDefaultSubobject<UArrowComponent>(FName("Arrow"));
-
+	SpawnPoint=CreateDefaultSubobject<UArrowComponent>(FName("Spawn Point"));
+	FirstGoal = CreateDefaultSubobject<UArrowComponent>(FName("First Goal"));
 }
 
 // Called when the game starts or when spawned
@@ -36,6 +36,8 @@ void AZombieSpawner::SpawnZombies() const
 		AICharacter->SpawnDefaultController();
 		Cast<AZombie_AI_Controller>(AICharacter->GetController())->SetPawnRef(AICharacter);
 		UGameplayStatics::FinishSpawningActor(AICharacter,GetActorTransform());
+
+		Cast<AZombie_AI_Controller>(AICharacter->GetController())->FirstGoalLocation=FirstGoal->GetComponentLocation();
 	}
 }
 

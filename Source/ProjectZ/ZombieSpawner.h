@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "ZombieSpawner.generated.h"
 
+class UArrowComponent;
+
 UCLASS()
 class PROJECTZ_API AZombieSpawner : public AActor
 {
@@ -26,8 +28,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly,Category="AI class")
 	class UBehaviorTree* AIBehaviorTree;
 
-	UPROPERTY(EditDefaultsOnly)
-	class UArrowComponent* Arrow;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UArrowComponent* SpawnPoint;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UArrowComponent* FirstGoal;
 
 public:	
 	// Called every frame

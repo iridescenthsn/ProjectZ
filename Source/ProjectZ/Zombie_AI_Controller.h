@@ -29,11 +29,16 @@ class PROJECTZ_API AZombie_AI_Controller : public AAIController
 	UFUNCTION()
 	void OnAIPerceptionUpdated(const TArray<AActor*>&DetectedActors);
 
+	UFUNCTION()
+	void CheckIfReachedLocation();
+
 	virtual void BeginPlay() override;
 
 	UBlackboardComponent* BlackBoard;
 
 	class AAI_Character* PawnRef;
+
+	FTimerHandle Timer;
 	
 protected:
 
@@ -45,11 +50,17 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category="AiWalkSpeed")
 	float InvestigatingSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* TheTree;
 public:
 	
 	UFUNCTION(BlueprintCallable)
 	void ChangeAiState(EAiState AiState);
 
 	void SetPawnRef(AAI_Character* const PawnToSet) {PawnRef = PawnToSet;}
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite)
+	FVector FirstGoalLocation;
 	
 };

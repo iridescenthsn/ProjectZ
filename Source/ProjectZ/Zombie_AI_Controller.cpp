@@ -10,13 +10,19 @@
 
 AZombie_AI_Controller::AZombie_AI_Controller()
 {
-	AIPerception=CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp")); 
+	AIPerception=CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp"));
+	AIPerception->Deactivate();
 
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AZombie_AI_Controller::OnAIPerceptionUpdated);
 }
 
 void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& DetectedActors)
 {
+	if (!BlackBoard)
+	{
+		return;
+	}
+	
 	for (const auto& Actor:DetectedActors)
 	{
 		if (!Actor->ActorHasTag(FName("Player")))
@@ -72,6 +78,17 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 	}
 }
 
+void AZombie_AI_Controller::CheckIfReachedLocation()
+{
+	if((GetPawn()->GetActorLocation() - FirstGoalLocation).Size()<=100)
+	{
+		RunBehaviorTree(TheTree);
+		BlackBoard=GetBlackboardComponent();
+		AIPerception->Activate();
+		GetWorldTimerManager().ClearTimer(Timer);
+	}
+}
+
 
 void AZombie_AI_Controller::BeginPlay()
 {
@@ -82,7 +99,13 @@ void AZombie_AI_Controller::BeginPlay()
 		PawnRef=Cast<AAI_Character>(GetPawn());
 	}
 	
-	BlackBoard= GetBlackboardComponent();
+	FTimerHandle Handle;
+	GetWorldTimerManager().SetTimer(Handle,[&]
+	{
+		MoveToLocation(FirstGoalLocation);
+	},0.1,false);
+	
+	GetWorldTimerManager().SetTimer(Timer,this,&AZombie_AI_Controller::CheckIfReachedLocation,0.1,true);
 }
 
 void AZombie_AI_Controller::ChangeAiState(EAiState AiState)
