@@ -254,10 +254,17 @@ private:
 
 	UPROPERTY(VisibleAnywhere,Category="ADS")
 	FTransform DefaultArmsTransform;
-	
+
+	UPROPERTY(EditAnywhere, Category = "Points")
+	int Points;
 public:
 	
-
+	UFUNCTION(BlueprintCallable)
+	int GetPoints() const{return Points;}
+	
+	UFUNCTION(BlueprintCallable)
+	void SetPoints(const int Value) {Points = Value;}
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

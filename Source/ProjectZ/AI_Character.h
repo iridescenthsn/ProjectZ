@@ -29,6 +29,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health")
 	float CurrentHealth;
+
+	UPROPERTY(BlueprintReadOnly, Category = "References")
+	class AFPS_Character* PlayerRef;
  
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health")
 	float MaxHealth;

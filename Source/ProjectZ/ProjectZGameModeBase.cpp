@@ -26,7 +26,8 @@ void AProjectZGameModeBase::SpawnZombies()
 		Cast<AZombieSpawner>(Spawners[RandomSpawnerIndex])->SpawnZombies();
 		ZombiesSpawnedThisRound++;
 		ZombiesAlive++;
-
+		UpdateRoundUI.Broadcast(CurrentRound,ZombiesAlive);
+		
 		GetWorldTimerManager().SetTimer(SpawnerHandle,this,&AProjectZGameModeBase::SpawnZombies,SpawningRate,true);
 	}
 }
@@ -35,7 +36,8 @@ void AProjectZGameModeBase::NextRound()
 {
 	CurrentRound++;
 	NumberOfZombiesToSpawn= CurrentRound*2+9;
-	ZombiesSpawnedThisRound=0; 
+	ZombiesSpawnedThisRound=0;
+	UpdateRoundUI.Broadcast(CurrentRound,ZombiesAlive);
 
 	FTimerHandle StartRoundHandle; 
 	GetWorldTimerManager().SetTimer(StartRoundHandle,this,&AProjectZGameModeBase::SpawnZombies,TimeBetweenRounds);

@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "ProjectZGameModeBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUpdateRoundInfo,int,Round,int,ZombiesAlive);
+
 /**
  * 
  */
@@ -13,7 +15,7 @@ UCLASS()
 class PROJECTZ_API AProjectZGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-
+	
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
@@ -58,4 +60,9 @@ public:
 	void SetZombiesAlive(const int32 Alive) {ZombiesAlive = Alive;}
 
 	void IsRoundOver();
+
+	UPROPERTY(BlueprintAssignable)
+	FUpdateRoundInfo UpdateRoundUI;
+
+	int32 GetCurrentRound() const {return CurrentRound;}
 };

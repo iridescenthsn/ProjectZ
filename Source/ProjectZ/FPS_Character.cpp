@@ -648,7 +648,7 @@ void AFPS_Character::PlayDeathRagdollAnimation()
 	}
 
 	const FAttachmentTransformRules TransformRules = FAttachmentTransformRules::KeepWorldTransform;
-	DeathCamera->AttachToComponent(Mesh3P,TransformRules);
+	DeathCamera->AttachToComponent(GetCapsuleComponent(),TransformRules);
 	
 	OldController->SetViewTargetWithBlend(DeathCamera,DeathCameraBlendTime);
 

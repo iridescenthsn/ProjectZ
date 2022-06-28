@@ -2,6 +2,7 @@
 
 #include "AI_Character.h"
 
+#include "FPS_Character.h"
 #include "ProjectZGameModeBase.h"
 #include "Zombie_AI_Controller.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -24,7 +25,7 @@ void AAI_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	PlayerRef=Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
 }
 
 float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult) const
@@ -86,8 +87,7 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 			); 
 		
 		const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
-
-		UE_LOG(LogTemp, Warning, TEXT("damage coming through : %f"),AmmoData.Damage)
+		PlayerRef->SetPoints(PlayerRef->GetPoints()+DamageTaken);
 
 		bIsDead = UpdateHealth(DamageTaken);
 
@@ -113,7 +113,8 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
 			);
 		
 		const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
-
+		PlayerRef->SetPoints(PlayerRef->GetPoints()+DamageTaken);
+		
 		bIsDead = UpdateHealth(DamageTaken);
  
 		if (bIsDead)
@@ -176,12 +177,12 @@ void AAI_Character::Die()
 	//Reduce the number of alive zombies
 	AProjectZGameModeBase* GameModeRef =Cast<AProjectZGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameModeRef->SetZombiesAlive(GameModeRef->GetZombiesAlive()-1);
+	GameModeRef->UpdateRoundUI.Broadcast(GameModeRef->GetCurrentRound(),GameModeRef->GetZombiesAlive());
 	GameModeRef->IsRoundOver();
 
 	//Simulate RagDoll physics
 	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Cast<AZombie_AI_Controller>(GetController())->GetBlackboardComponent()->SetValueAsBool(FName("IsDead"),true);
 
 	FTimerHandle DestroyHandle;
 	GetWorldTimerManager().SetTimer(DestroyHandle,[&]
