@@ -24,7 +24,7 @@ class PROJECTZ_API AZombie_AI_Controller : public AAIController
 	AZombie_AI_Controller();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AIPerception", meta = (AllowPrivateAccess = "true"))
-	class UAIPerceptionComponent* AIPerception;
+	UAIPerceptionComponent* AIPerception;
 
 	UFUNCTION()
 	void OnAIPerceptionUpdated(const TArray<AActor*>&DetectedActors);
@@ -53,6 +53,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	UBehaviorTree* TheTree;
+
+	UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<class UAISense> Sight;
 public:
 	
 	UFUNCTION(BlueprintCallable)

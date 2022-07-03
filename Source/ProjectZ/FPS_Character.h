@@ -88,6 +88,8 @@ protected:
 	void ADSEnter();
 	void ADSExit();
 
+	void ResetReloadTimeline();
+
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* Mesh1P;
@@ -304,6 +306,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentArmor() const {return CurrentArmor;}
+
+	void SetCurrentArmor(const float Value) {CurrentArmor = Value;}
 
 	UFUNCTION(BlueprintCallable)
 	float GetMaxArmor() const {return MaxArmor;}

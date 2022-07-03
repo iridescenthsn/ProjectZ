@@ -197,7 +197,7 @@ void AFPS_Character::Jump()
 
 void AFPS_Character::ADSEnter()
 {
-	if (IsADSing==false)
+	if (!IsADSing&&!bIsReloading&&!bIsChangingWeapon&&!bIsNearWall)
 	{
 		if (CurrentWeapon)
 		{
@@ -220,7 +220,7 @@ void AFPS_Character::ADSEnter()
 
 void AFPS_Character::ADSExit()
 {
-	if (IsADSing==true)
+	if (IsADSing)
 	{
 		if (CurrentWeapon)
 		{
@@ -238,6 +238,17 @@ void AFPS_Character::ADSExit()
 			}
 		}
 	}
+}
+
+void AFPS_Character::ResetReloadTimeline()
+{
+	ReloadPullUpTimeline.Stop();
+	ReloadPullUpTimeline.SetPlaybackPosition(0.0f,true);
+
+	ReloadPullDownTimeLine.Stop();
+	ReloadPullDownTimeLine.SetPlaybackPosition(0.0f,true);
+
+	GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
 }
 
 void AFPS_Character::SetFOV(float value) const
@@ -292,13 +303,8 @@ void AFPS_Character::EquipWeapon()
 		}
 		
 		GetWorldTimerManager().ClearTimer(CurrentWeapon->AutoFireHandle);
-		GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
-		
-		ReloadPullUpTimeline.Stop();
-		ReloadPullUpTimeline.SetPlaybackPosition(0.0f,true);
 
-		ReloadPullDownTimeLine.Stop();
-		ReloadPullDownTimeLine.SetPlaybackPosition(0.0f,true);
+		ResetReloadTimeline();
 		
 		bIsChangingWeapon = true; 
 		bCanFire = false;
@@ -339,6 +345,7 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 
 	case EWeaponSlot::FirstSlot:
 
+		
 		if (!bFirstSlotFull)
 		{
 			SpawnFirstSlot(WeaponToSpawn);
@@ -357,7 +364,12 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 			}
 			else
 			{
-				bSuccessful = false;
+				//If we hold first slot and both slots are full
+				//delete the current slot (and current weapon) and spawn a new gun to that slot
+				CurrentWeapon->Destroy();
+				SpawnFirstSlot(WeaponToSpawn);
+				UpdateWeaponHud.Broadcast();
+				bSuccessful = true;
 				return bSuccessful;
 			}
 		}
@@ -368,10 +380,7 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 
 		if (!bSecondSlotFull)
 		{
-			if (bIsReloading)
-			{
-				bIsReloading=false;
-			}
+			bIsReloading=false;
 			SpawnSecondSlot(WeaponToSpawn);
 			bSuccessful = true;
 
@@ -380,7 +389,12 @@ bool AFPS_Character::PickUpWeapon(TSubclassOf<AWeaponBase> WeaponToSpawn)
 		} 
 		else
 		{
-			bSuccessful = false;
+			//If we hold second slot and both slots are full
+			//delete the current slot (and current weapon) and spawn a new gun to that slot
+			CurrentWeapon->Destroy();
+			SpawnSecondSlot(WeaponToSpawn);
+			UpdateWeaponHud.Broadcast();
+			bSuccessful = true;
 			return bSuccessful;
 		}
 
@@ -405,6 +419,9 @@ void AFPS_Character::SpawnSecondSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 	WeaponSlot = EWeaponSlot::SecondSlot;
 	CurrentWeapon = WeaponSlot_02;
 	ShowWeapon();
+	ResetReloadTimeline();
+	bIsReloading=false;
+	bCanFire=true;
 	CharacterWeaponSwitch.Broadcast();
 }
 
@@ -418,6 +435,7 @@ void AFPS_Character::SpawnFirstSlot(TSubclassOf<AWeaponBase> WeaponToSpawn)
 	WeaponSlot = EWeaponSlot::FirstSlot;
 	CurrentWeapon = WeaponSlot_01;
 	ShowWeapon();
+	ResetReloadTimeline();
 	CharacterWeaponSwitch.Broadcast();
 }
 
@@ -474,6 +492,11 @@ void AFPS_Character::CheckIsNearWall()
 
 	bIsNearWall = GetWorld()->LineTraceSingleByObjectType(Hit, Startloc, Endloc,
 		TraceObjectParams,CollisionParams);
+
+	if (bIsNearWall)
+	{
+		ADSExit();
+	}
 
 	/*DrawDebugLine(GetWorld(), Startloc, Endloc, FColor::Green, false, 0.2);
 	DrawDebugBox(GetWorld(), Hit.ImpactPoint, FVector(5, 5, 5), FColor::Cyan, false, 0.2);*/

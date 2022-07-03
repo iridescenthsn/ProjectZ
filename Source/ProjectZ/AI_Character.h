@@ -84,6 +84,9 @@ protected:
 
 	FTimerHandle AddDamageTimer;
 
+	UPROPERTY()
+	class AProjectZGameModeBase* GameModeRef;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

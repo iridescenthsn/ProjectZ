@@ -28,13 +28,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly,Category="AI class")
 	class UBehaviorTree* AIBehaviorTree;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 	UArrowComponent* SpawnPoint;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 	UArrowComponent* FirstGoal;
 
-public:	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Property")
+	bool bIsActive=true;
+public:
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsActive() const{return bIsActive;}
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsActive(const bool Value) {bIsActive = Value;}
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

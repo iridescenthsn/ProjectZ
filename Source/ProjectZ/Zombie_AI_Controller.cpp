@@ -7,11 +7,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
 
 AZombie_AI_Controller::AZombie_AI_Controller()
 {
 	AIPerception=CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp"));
-	AIPerception->Deactivate();
 
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AZombie_AI_Controller::OnAIPerceptionUpdated);
 }
@@ -40,6 +40,7 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 		//Check if we seen player or lost sight
 		const bool WasSuccessfullySeen = Info.LastSensedStimuli[0].WasSuccessfullySensed();
 		BlackBoard->SetValueAsBool((FName("Can see player")),WasSuccessfullySeen);
+		UE_LOG(LogTemp,Warning,TEXT("Was seen : %s"),WasSuccessfullySeen ? TEXT("True") : TEXT("False"))
 
 		//Set the player key and chase if we see player
 		//Otherwise Investigate
@@ -79,12 +80,18 @@ void AZombie_AI_Controller::OnAIPerceptionUpdated(const TArray<AActor*>& Detecte
 }
 
 void AZombie_AI_Controller::CheckIfReachedLocation()
-{
+{ 
 	if((GetPawn()->GetActorLocation() - FirstGoalLocation).Size()<=100)
 	{
-		RunBehaviorTree(TheTree);
+		RunBehaviorTree(TheTree); 
 		BlackBoard=GetBlackboardComponent();
-		AIPerception->Activate();
+
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(Handle,[&]
+		{
+			AIPerception->SetSenseEnabled(Sight,true);
+		},1,false);
+		
 		GetWorldTimerManager().ClearTimer(Timer);
 	}
 }

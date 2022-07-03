@@ -26,6 +26,7 @@ void AAI_Character::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerRef=Cast<AFPS_Character>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
+	GameModeRef =Cast<AProjectZGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 }
 
 float AAI_Character::SetDamage(float Damage, float CriticalHitChance, float CriticalHitModifier,const FHitResult& HitResult) const
@@ -88,7 +89,8 @@ void AAI_Character::TakeDamage(const FAmmoData& AmmoData, float CriticalHitModif
 		
 		const float DamageTaken = SetDamage(AmmoData.Damage, AmmoData.CriticalHitChance, CriticalHitModifier, HitResult);
 		PlayerRef->SetPoints(PlayerRef->GetPoints()+DamageTaken);
-
+		GameModeRef->SetTotalScore(GameModeRef->GetTotalScore()+DamageTaken);
+		
 		bIsDead = UpdateHealth(DamageTaken);
 
 		if (bIsDead)
@@ -114,6 +116,7 @@ void AAI_Character::TakeRadialDamage(const FAmmoData& AmmoData, float CriticalHi
 		
 		const float DamageTaken = SetRadialDamage(AmmoData.Damage,AmmoData.DamageRadius, HitResult,ExplosiveLocation);
 		PlayerRef->SetPoints(PlayerRef->GetPoints()+DamageTaken);
+		GameModeRef->SetTotalScore(GameModeRef->GetTotalScore()+DamageTaken);
 		
 		bIsDead = UpdateHealth(DamageTaken);
  
@@ -175,10 +178,11 @@ void AAI_Character::AddMeleeDamage()
 void AAI_Character::Die() 
 {
 	//Reduce the number of alive zombies
-	AProjectZGameModeBase* GameModeRef =Cast<AProjectZGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	
 	GameModeRef->SetZombiesAlive(GameModeRef->GetZombiesAlive()-1);
 	GameModeRef->UpdateRoundUI.Broadcast(GameModeRef->GetCurrentRound(),GameModeRef->GetZombiesAlive());
 	GameModeRef->IsRoundOver();
+	GameModeRef->SetZombiesKilled(GameModeRef->GetZombiesAlive()+1);
 
 	//Simulate RagDoll physics
 	GetMesh()->SetSimulatePhysics(true);

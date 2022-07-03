@@ -52,6 +52,12 @@ protected:
 	UPROPERTY(EditAnywhere,Category="Round")
 	float TimeBetweenRounds=5.0f;
 
+	UPROPERTY(VisibleAnywhere,Category="Stats")
+	int32 ZombiesKilled=0;
+
+	UPROPERTY(VisibleAnywhere,Category="Stats")
+	int32 TotalScore=0;
+
 	FTimerHandle SpawnerHandle;
 public:
 	
@@ -64,5 +70,16 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FUpdateRoundInfo UpdateRoundUI;
 
+	UFUNCTION(BlueprintCallable)
 	int32 GetCurrentRound() const {return CurrentRound;}
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetZombiesKilled() const {return ZombiesKilled;}
+
+	void SetZombiesKilled(const int32 Value) {ZombiesKilled = Value;}
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetTotalScore() const {return TotalScore;}
+
+	void SetTotalScore(const int32 Value) {TotalScore = Value;}
 };

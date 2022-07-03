@@ -21,7 +21,15 @@ void AProjectZGameModeBase::SpawnZombies()
 {
 	if (NumberOfZombiesToSpawn>ZombiesSpawnedThisRound&& MaxAliveAtTime>=ZombiesAlive)
 	{
-		const int32 RandomSpawnerIndex= FMath::RandRange(0,Spawners.Num()-1); 
+		int32 RandomSpawnerIndex;
+		while (true)
+		{
+			RandomSpawnerIndex = FMath::RandRange(0,Spawners.Num()-1);
+			if (Cast<AZombieSpawner>(Spawners[RandomSpawnerIndex])->GetIsActive())
+			{
+				break;
+			}
+		}
 		
 		Cast<AZombieSpawner>(Spawners[RandomSpawnerIndex])->SpawnZombies();
 		ZombiesSpawnedThisRound++;

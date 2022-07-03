@@ -21,17 +21,14 @@ protected:
 
 	//The scene root of gun
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	class USceneComponent* SceneRoot;
+	USceneComponent* SceneRoot;
 
 	//Mesh of the weapon to buy
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	class UStaticMeshComponent* GunMesh;
+	UStaticMeshComponent* GunMesh;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
 	class USphereComponent* Sphere;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	class URotatingMovementComponent* RotatingMovement;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	FName WeaponName;

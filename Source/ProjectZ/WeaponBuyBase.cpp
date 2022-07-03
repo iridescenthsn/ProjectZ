@@ -2,10 +2,8 @@
 
 #include "WeaponBuyBase.h"
 #include "FPS_Character.h"	
-#include "GameFramework/RotatingMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
-#include "WeaponBase.h"
 
 
 // Sets default values
@@ -26,8 +24,7 @@ AWeaponBuyBase::AWeaponBuyBase()
 
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("OverlapSphere"));
 	Sphere->SetupAttachment(SceneRoot);
-
-	RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
+	
 }
 
 // Called when the game starts or when spawned
@@ -53,9 +50,10 @@ void AWeaponBuyBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AAc
 
 void AWeaponBuyBase::PickUp()
 {
-	if (Character->PickUpWeapon(Weapon))
+	if (Character->GetPoints() >= WeaponCost && Character->PickUpWeapon(Weapon))
 	{
-		this->Destroy();
+		Character->SetPoints(Character->GetPoints()-WeaponCost);
+		Character->UpdateMainHud.Broadcast();
 	}
 }
 
