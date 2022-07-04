@@ -89,12 +89,12 @@ protected:
 	TSubclassOf<class UCameraShake> CameraShakeBP;
 
 	//Gun mesh 1st person view
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
-	class USkeletalMeshComponent* GunMesh;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category = "Mesh")
+	USkeletalMeshComponent* GunMesh;
 
 	//The scene root of gun
 	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
-	class USceneComponent* SceneRoot;
+	USceneComponent* SceneRoot;
 	
 	UPROPERTY()
 	TEnumAsByte<ETimelineDirection::Type> RecoilTimelineDirection;

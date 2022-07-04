@@ -17,5 +17,8 @@ class PROJECTZ_API AHitscanWeapons : public AWeaponBase
 protected:
 
 	virtual void Shoot() override;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Tracer")
+	TSubclassOf<class ATracer> TracerClass;
 	
 };
