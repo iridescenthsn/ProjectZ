@@ -4,6 +4,7 @@
 #include "HitscanWeapons.h"
 
 #include "Tracer.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
@@ -11,10 +12,12 @@ void AHitscanWeapons::Shoot()
 {
 	FHitResult HitResult = CalculateShot();
 
-	//UKismetMathLibrary::FindLookAtRotation(GunMesh->GetSocketLocation(FName("MuzzleFlash")),HitResult.Location);
-
-	GetWorld()->SpawnActor<ATracer>(TracerClass,GunMesh->GetSocketLocation(FName("MuzzleFlash")),
+	ATracer* Tracer = GetWorld()->SpawnActor<ATracer>(TracerClass,GunMesh->GetSocketLocation(FName("MuzzleFlash")),
 		UKismetMathLibrary::FindLookAtRotation(GunMesh->GetSocketLocation(FName("MuzzleFlash")),HitResult.Location));
+
+
+	//
+	Tracer->SetLifeSpan(HitResult.Distance/Tracer->GetMovementComponent()->GetMaxSpeed());
 
 	if (HitResult.bBlockingHit)
 	{

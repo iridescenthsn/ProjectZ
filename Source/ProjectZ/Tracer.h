@@ -27,8 +27,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="SceneRoot")
 	class UProjectileMovementComponent* MovementComponent;
+public:
+	UProjectileMovementComponent* GetMovementComponent() const {return MovementComponent;}
 
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
